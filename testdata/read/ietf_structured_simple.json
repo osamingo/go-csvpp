@@ -1,0 +1,29 @@
+{
+  "description": "IETF Figure 5 - Simple Structure",
+  "input": "id,name,geo(lat^lon)\n1,Location A,34.0522^-118.2437\n2,Location B,40.7128^-74.0060\n",
+  "headers": [
+    {"name": "id", "kind": "simple"},
+    {"name": "name", "kind": "simple"},
+    {
+      "name": "geo",
+      "kind": "structured",
+      "componentDelimiter": "^",
+      "components": [
+        {"name": "lat", "kind": "simple"},
+        {"name": "lon", "kind": "simple"}
+      ]
+    }
+  ],
+  "records": [
+    [
+      {"value": "1"},
+      {"value": "Location A"},
+      {"components": [{"value": "34.0522"}, {"value": "-118.2437"}]}
+    ],
+    [
+      {"value": "2"},
+      {"value": "Location B"},
+      {"components": [{"value": "40.7128"}, {"value": "-74.0060"}]}
+    ]
+  ]
+}

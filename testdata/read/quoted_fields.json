@@ -1,0 +1,21 @@
+{
+  "description": "Quoted fields containing delimiters (RFC 4180 compliance)",
+  "input": "name,phone[],address\nAlice,\"555~1234~555~5678\",\"123 Main St, Apt 4\"\nBob,555-0000,\"New York, NY\"\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {"name": "phone", "kind": "array", "arrayDelimiter": "~"},
+    {"name": "address", "kind": "simple"}
+  ],
+  "records": [
+    [
+      {"value": "Alice"},
+      {"values": ["555", "1234", "555", "5678"]},
+      {"value": "123 Main St, Apt 4"}
+    ],
+    [
+      {"value": "Bob"},
+      {"values": ["555-0000"]},
+      {"value": "New York, NY"}
+    ]
+  ]
+}

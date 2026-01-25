@@ -1,0 +1,29 @@
+{
+  "description": "Unicode/UTF-8 support - non-ASCII characters in values (headers must be ASCII per IETF spec)",
+  "input": "name,cities[],location(lat^lon)\n田中太郎,東京~大阪~京都,35.6762^139.6503\nМария,Москва~Санкт-Петербург,55.7558^37.6173\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {"name": "cities", "kind": "array", "arrayDelimiter": "~"},
+    {
+      "name": "location",
+      "kind": "structured",
+      "componentDelimiter": "^",
+      "components": [
+        {"name": "lat", "kind": "simple"},
+        {"name": "lon", "kind": "simple"}
+      ]
+    }
+  ],
+  "records": [
+    [
+      {"value": "田中太郎"},
+      {"values": ["東京", "大阪", "京都"]},
+      {"components": [{"value": "35.6762"}, {"value": "139.6503"}]}
+    ],
+    [
+      {"value": "Мария"},
+      {"values": ["Москва", "Санкт-Петербург"]},
+      {"components": [{"value": "55.7558"}, {"value": "37.6173"}]}
+    ]
+  ]
+}

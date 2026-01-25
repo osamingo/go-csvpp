@@ -1,0 +1,6 @@
+{
+  "description": "Nesting depth exceeds limit",
+  "input": "name,a(b(c(d(e(f(g(h(i(j(k(l)))))))))))\nAlice,1\n",
+  "expectError": true,
+  "errorContains": "nesting"
+}

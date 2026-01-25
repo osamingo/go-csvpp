@@ -1,0 +1,3 @@
+name,address[](street^city)
+Alice,123 Main^LA~456 Oak^NY
+Bob,789 Pine^Boston

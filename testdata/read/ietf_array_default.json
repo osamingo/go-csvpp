@@ -1,0 +1,24 @@
+{
+  "description": "IETF Figure 2 - Arrays with Default Delimiters",
+  "input": "id,name,phone[],email[]\n1,John,555-1234~555-5678~555-9012,john@work.com~john@home.com\n2,Jane,555-4444,jane@company.com\n",
+  "headers": [
+    {"name": "id", "kind": "simple"},
+    {"name": "name", "kind": "simple"},
+    {"name": "phone", "kind": "array", "arrayDelimiter": "~"},
+    {"name": "email", "kind": "array", "arrayDelimiter": "~"}
+  ],
+  "records": [
+    [
+      {"value": "1"},
+      {"value": "John"},
+      {"values": ["555-1234", "555-5678", "555-9012"]},
+      {"values": ["john@work.com", "john@home.com"]}
+    ],
+    [
+      {"value": "2"},
+      {"value": "Jane"},
+      {"values": ["555-4444"]},
+      {"values": ["jane@company.com"]}
+    ]
+  ]
+}

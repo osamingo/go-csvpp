@@ -1,0 +1,6 @@
+{
+  "description": "Empty component list in structured field",
+  "input": "name,geo()\nAlice,1^2\n",
+  "expectError": true,
+  "errorContains": "component"
+}

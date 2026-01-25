@@ -1,0 +1,37 @@
+{
+  "description": "Delimiter progression for nested structures: recommended ~ for array, ^ for struct",
+  "input": "name,addresses[](street^city^zip)\nAlice,123 Main^LA^90210~456 Oak^NY^10001\nBob,789 Pine^Boston^02101\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {
+      "name": "addresses",
+      "kind": "arrayStructured",
+      "arrayDelimiter": "~",
+      "componentDelimiter": "^",
+      "components": [
+        {"name": "street", "kind": "simple"},
+        {"name": "city", "kind": "simple"},
+        {"name": "zip", "kind": "simple"}
+      ]
+    }
+  ],
+  "records": [
+    [
+      {"value": "Alice"},
+      {
+        "components": [
+          {"components": [{"value": "123 Main"}, {"value": "LA"}, {"value": "90210"}]},
+          {"components": [{"value": "456 Oak"}, {"value": "NY"}, {"value": "10001"}]}
+        ]
+      }
+    ],
+    [
+      {"value": "Bob"},
+      {
+        "components": [
+          {"components": [{"value": "789 Pine"}, {"value": "Boston"}, {"value": "02101"}]}
+        ]
+      }
+    ]
+  ]
+}

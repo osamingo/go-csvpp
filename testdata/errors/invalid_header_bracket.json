@@ -1,0 +1,6 @@
+{
+  "description": "Invalid header - missing closing bracket",
+  "input": "name,phone[\nAlice,123\n",
+  "expectError": true,
+  "errorContains": "bracket"
+}

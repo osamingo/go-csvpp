@@ -1,0 +1,6 @@
+{
+  "description": "Empty header - should error",
+  "input": "",
+  "expectError": true,
+  "errorContains": "header"
+}

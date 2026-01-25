@@ -1,0 +1,6 @@
+{
+  "description": "Invalid header - missing closing parenthesis",
+  "input": "name,geo(lat^lon\nAlice,1^2\n",
+  "expectError": true,
+  "errorContains": "parenthesis"
+}

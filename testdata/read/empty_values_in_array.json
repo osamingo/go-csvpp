@@ -1,0 +1,18 @@
+{
+  "description": "Empty values in arrays - consecutive delimiters preserve empty strings",
+  "input": "name,tags[]\nAlice,urgent~~priority\nBob,~middle~\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {"name": "tags", "kind": "array", "arrayDelimiter": "~"}
+  ],
+  "records": [
+    [
+      {"value": "Alice"},
+      {"values": ["urgent", "", "priority"]}
+    ],
+    [
+      {"value": "Bob"},
+      {"values": ["", "middle", ""]}
+    ]
+  ]
+}

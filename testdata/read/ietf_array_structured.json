@@ -1,0 +1,41 @@
+{
+  "description": "IETF Figure 6 - Repeated Structures (Array of Structs)",
+  "input": "id,name,address[](street^city^state^zip)\n1,John,123 Main St^Los Angeles^CA^90210~456 Oak Ave^New York^NY^10001\n2,Jane,789 Pine St^Boston^MA^02101\n",
+  "headers": [
+    {"name": "id", "kind": "simple"},
+    {"name": "name", "kind": "simple"},
+    {
+      "name": "address",
+      "kind": "arrayStructured",
+      "arrayDelimiter": "~",
+      "componentDelimiter": "^",
+      "components": [
+        {"name": "street", "kind": "simple"},
+        {"name": "city", "kind": "simple"},
+        {"name": "state", "kind": "simple"},
+        {"name": "zip", "kind": "simple"}
+      ]
+    }
+  ],
+  "records": [
+    [
+      {"value": "1"},
+      {"value": "John"},
+      {
+        "components": [
+          {"components": [{"value": "123 Main St"}, {"value": "Los Angeles"}, {"value": "CA"}, {"value": "90210"}]},
+          {"components": [{"value": "456 Oak Ave"}, {"value": "New York"}, {"value": "NY"}, {"value": "10001"}]}
+        ]
+      }
+    ],
+    [
+      {"value": "2"},
+      {"value": "Jane"},
+      {
+        "components": [
+          {"components": [{"value": "789 Pine St"}, {"value": "Boston"}, {"value": "MA"}, {"value": "02101"}]}
+        ]
+      }
+    ]
+  ]
+}

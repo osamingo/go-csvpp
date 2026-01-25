@@ -1,0 +1,13 @@
+{
+  "description": "Simple fields only",
+  "input": "name,age,city\nAlice,30,Tokyo\nBob,25,Osaka\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {"name": "age", "kind": "simple"},
+    {"name": "city", "kind": "simple"}
+  ],
+  "records": [
+    [{"value": "Alice"}, {"value": "30"}, {"value": "Tokyo"}],
+    [{"value": "Bob"}, {"value": "25"}, {"value": "Osaka"}]
+  ]
+}

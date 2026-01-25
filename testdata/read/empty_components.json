@@ -1,0 +1,31 @@
+{
+  "description": "Empty components in structured fields",
+  "input": "name,geo(lat^lon^alt)\nAlice,34.0522^-118.2437^\nBob,^-74.0060^100\nCharlie,^^\n",
+  "headers": [
+    {"name": "name", "kind": "simple"},
+    {
+      "name": "geo",
+      "kind": "structured",
+      "componentDelimiter": "^",
+      "components": [
+        {"name": "lat", "kind": "simple"},
+        {"name": "lon", "kind": "simple"},
+        {"name": "alt", "kind": "simple"}
+      ]
+    }
+  ],
+  "records": [
+    [
+      {"value": "Alice"},
+      {"components": [{"value": "34.0522"}, {"value": "-118.2437"}, {"value": ""}]}
+    ],
+    [
+      {"value": "Bob"},
+      {"components": [{"value": ""}, {"value": "-74.0060"}, {"value": "100"}]}
+    ],
+    [
+      {"value": "Charlie"},
+      {"components": [{"value": ""}, {"value": ""}, {"value": ""}]}
+    ]
+  ]
+}
