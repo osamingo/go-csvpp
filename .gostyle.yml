@@ -1,0 +1,13 @@
+analyzers:
+  disable:
+    - mixedcaps  # disable mixedcaps analyzer. because the underscores analyzer is more detailed.
+    - recvtype   # disable recvtype analyzer. it's a strong check.
+analyzers-settings:
+  errorstrings:
+    exclude-test: true
+  handlerrors:
+    exclude-test: true
+  nilslices:
+    exclude-test: true
+  repetition:
+    exclude-test: true
