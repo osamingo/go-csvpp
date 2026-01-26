@@ -129,15 +129,15 @@ func parseArrayDelimiter(s string) (delim rune, rest string, err error) {
 		return 0, "", fmt.Errorf("%w: missing closing bracket ']'", ErrInvalidHeader)
 	}
 
-	delimStr := s[:idx]
+	raw := s[:idx]
 	rest = s[idx+1:]
 
-	if delimStr == "" {
+	if raw == "" {
 		// Use default delimiter
 		delim = DefaultArrayDelimiter
 	} else {
-		r, size := utf8.DecodeRuneInString(delimStr)
-		if size != len(delimStr) {
+		r, size := utf8.DecodeRuneInString(raw)
+		if size != len(raw) {
 			return 0, "", fmt.Errorf("%w: array delimiter must be a single character", ErrInvalidHeader)
 		}
 		delim = r
@@ -165,9 +165,9 @@ func parseStructuredPartWithDepth(s string, depth, maxDepth int) (compDelim rune
 		compDelim = DefaultComponentDelimiter
 	} else {
 		// Character before "(" is the component delimiter
-		delimStr := s[:parenIdx]
-		r, size := utf8.DecodeRuneInString(delimStr)
-		if size != len(delimStr) {
+		raw := s[:parenIdx]
+		r, size := utf8.DecodeRuneInString(raw)
+		if size != len(raw) {
 			return 0, nil, fmt.Errorf("%w: component delimiter must be a single character", ErrInvalidHeader)
 		}
 		compDelim = r
@@ -182,7 +182,7 @@ func parseStructuredPartWithDepth(s string, depth, maxDepth int) (compDelim rune
 		return 0, nil, fmt.Errorf("%w: missing closing parenthesis ')'", ErrInvalidHeader)
 	}
 
-	compListStr := s[:closeIdx]
+	inner := s[:closeIdx]
 	rest := s[closeIdx+1:]
 
 	if rest != "" {
@@ -190,7 +190,7 @@ func parseStructuredPartWithDepth(s string, depth, maxDepth int) (compDelim rune
 	}
 
 	// Parse component list (depth + 1)
-	components, err = parseComponentListWithDepth(compListStr, compDelim, depth+1, maxDepth)
+	components, err = parseComponentListWithDepth(inner, compDelim, depth+1, maxDepth)
 	if err != nil {
 		return 0, nil, err
 	}
