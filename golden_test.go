@@ -284,19 +284,19 @@ func verifyField(t *testing.T, recordIndex, fieldIndex int, got *Field, want gol
 		return "record[" + string(rune('0'+recordIndex)) + "].field[" + string(rune('0'+fieldIndex)) + "]"
 	}
 
-	if want.Value != "" || (want.Values == nil && want.Components == nil) {
+	if want.Value != "" || (len(want.Values) == 0 && len(want.Components) == 0) {
 		if got.Value != want.Value {
 			t.Errorf("%s.Value = %q, want %q", prefix(), got.Value, want.Value)
 		}
 	}
 
-	if want.Values != nil {
+	if len(want.Values) > 0 {
 		if diff := cmp.Diff(want.Values, got.Values); diff != "" {
 			t.Errorf("%s.Values mismatch (-want +got):\n%s", prefix(), diff)
 		}
 	}
 
-	if want.Components != nil {
+	if len(want.Components) > 0 {
 		if len(got.Components) != len(want.Components) {
 			t.Errorf("%s.Components count = %d, want %d", prefix(), len(got.Components), len(want.Components))
 		} else {

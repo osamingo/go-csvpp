@@ -442,7 +442,7 @@ func TestMarshal(t *testing.T) {
 	t.Run("success: empty slice", func(t *testing.T) {
 		t.Parallel()
 
-		records := []SimpleRecord{}
+		var records []SimpleRecord
 
 		var buf bytes.Buffer
 		err := Marshal(&buf, records)
