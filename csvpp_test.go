@@ -129,3 +129,65 @@ func TestParseError_Unwrap(t *testing.T) {
 		}
 	})
 }
+
+func TestHasFormulaPrefix(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{
+			name:  "success: empty string",
+			input: "",
+			want:  false,
+		},
+		{
+			name:  "success: normal string",
+			input: "hello",
+			want:  false,
+		},
+		{
+			name:  "success: starts with equals",
+			input: "=SUM(A1:A10)",
+			want:  true,
+		},
+		{
+			name:  "success: starts with plus",
+			input: "+1234",
+			want:  true,
+		},
+		{
+			name:  "success: starts with minus",
+			input: "-1234",
+			want:  true,
+		},
+		{
+			name:  "success: starts with at",
+			input: "@import",
+			want:  true,
+		},
+		{
+			name:  "success: contains but not starts with formula char",
+			input: "a=b",
+			want:  false,
+		},
+		{
+			name:  "success: number string",
+			input: "12345",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := HasFormulaPrefix(tt.input)
+			if got != tt.want {
+				t.Errorf("HasFormulaPrefix(%q) = %v, want %v", tt.input, got, tt.want)
+			}
+		})
+	}
+}

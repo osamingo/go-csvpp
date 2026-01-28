@@ -101,3 +101,29 @@ func (e *ParseError) Error() string {
 func (e *ParseError) Unwrap() error {
 	return e.Err
 }
+
+// HasFormulaPrefix reports whether s starts with a character that spreadsheet
+// applications may interpret as a formula. These characters are: '=', '+', '-', '@'.
+//
+// When CSV files are opened in spreadsheet applications like Microsoft Excel or
+// Google Sheets, values beginning with these characters may be executed as formulas,
+// potentially leading to security vulnerabilities (CSV injection).
+//
+// This function helps identify potentially dangerous values so that applications
+// can take appropriate action, such as prefixing with a single quote or rejecting the input.
+//
+// Example:
+//
+//	if csvpp.HasFormulaPrefix(value) {
+//	    value = "'" + value // Escape for spreadsheet safety
+//	}
+func HasFormulaPrefix(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	switch s[0] {
+	case '=', '+', '-', '@':
+		return true
+	}
+	return false
+}

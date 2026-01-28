@@ -269,6 +269,16 @@ This package wraps `encoding/csv` and inherits:
 - **MaxNestingDepth**: Limits nested structure depth (default: 10) to prevent stack overflow from malicious input
 - Header names are restricted to ASCII characters per IETF specification
 
+### CSV Injection Prevention
+
+When CSV files are opened in spreadsheet applications, values starting with `=`, `+`, `-`, or `@` may be interpreted as formulas. Use `HasFormulaPrefix` to detect and escape dangerous values:
+
+```go
+if csvpp.HasFormulaPrefix(value) {
+    value = "'" + value // Escape for spreadsheet safety
+}
+```
+
 ## Specification
 
 This implementation follows the IETF CSV++ specification:
