@@ -1,4 +1,4 @@
-// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-00).
+// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-01).
 //
 // CSV++ extends traditional CSV to support arrays and structured fields within cells,
 // enabling complex data representation while maintaining CSV's simplicity.
@@ -111,6 +111,24 @@
 //
 // The MaxNestingDepth option (default: 10) limits the depth of nested structures
 // to prevent stack overflow attacks from maliciously crafted input.
+//
+// # CSV Injection
+//
+// When CSV files are opened in spreadsheet applications (Excel, Google Sheets, etc.),
+// values beginning with '=', '+', '-', or '@' may be interpreted as formulas.
+// This can lead to security vulnerabilities known as "CSV injection" or "formula injection".
+//
+// Use the [HasFormulaPrefix] function to detect potentially dangerous values:
+//
+//	for _, field := range record {
+//	    if csvpp.HasFormulaPrefix(field.Value) {
+//	        field.Value = "'" + field.Value // Escape for spreadsheet safety
+//	    }
+//	}
+//
+// Note: This package does not automatically escape formula prefixes to preserve
+// data integrity. Applications should implement appropriate escaping based on
+// their specific security requirements and target environments.
 //
 // # Errors
 //

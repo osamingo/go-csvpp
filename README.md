@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/osamingo/go-csvpp)](https://goreportcard.com/report/github.com/osamingo/go-csvpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-00).
+A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-01).
 
 CSV++ extends traditional CSV to support **arrays** and **structured fields** within cells, enabling complex data representation while maintaining CSV's simplicity.
 
@@ -269,10 +269,20 @@ This package wraps `encoding/csv` and inherits:
 - **MaxNestingDepth**: Limits nested structure depth (default: 10) to prevent stack overflow from malicious input
 - Header names are restricted to ASCII characters per IETF specification
 
+### CSV Injection Prevention
+
+When CSV files are opened in spreadsheet applications, values starting with `=`, `+`, `-`, or `@` may be interpreted as formulas. Use `HasFormulaPrefix` to detect and escape dangerous values:
+
+```go
+if csvpp.HasFormulaPrefix(value) {
+    value = "'" + value // Escape for spreadsheet safety
+}
+```
+
 ## Specification
 
 This implementation follows the IETF CSV++ specification:
-- [draft-mscaldas-csvpp-00](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/)
+- [draft-mscaldas-csvpp-01](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/)
 
 ## License
 
