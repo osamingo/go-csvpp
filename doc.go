@@ -1,4 +1,4 @@
-// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-00).
+// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-01).
 //
 // CSV++ extends traditional CSV to support arrays and structured fields within cells,
 // enabling complex data representation while maintaining CSV's simplicity.

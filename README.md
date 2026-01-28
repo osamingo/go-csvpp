@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/osamingo/go-csvpp)](https://goreportcard.com/report/github.com/osamingo/go-csvpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-00).
+A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-01).
 
 CSV++ extends traditional CSV to support **arrays** and **structured fields** within cells, enabling complex data representation while maintaining CSV's simplicity.
 
@@ -272,7 +272,7 @@ This package wraps `encoding/csv` and inherits:
 ## Specification
 
 This implementation follows the IETF CSV++ specification:
-- [draft-mscaldas-csvpp-00](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/)
+- [draft-mscaldas-csvpp-01](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/)
 
 ## License
 
