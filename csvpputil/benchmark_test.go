@@ -1,4 +1,4 @@
-package csvpputil
+package csvpputil_test
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/osamingo/go-csvpp"
+	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
 var (
@@ -45,43 +46,55 @@ var (
 func BenchmarkRecordToMap(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		_ = RecordToMap(benchHeaders, benchRecord)
+		_ = csvpputil.RecordToMap(benchHeaders, benchRecord)
 	}
 }
 
 func BenchmarkMarshalJSON(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		_, _ = MarshalJSON(benchHeaders, benchRecords)
+		if _, err := csvpputil.MarshalJSON(benchHeaders, benchRecords); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkMarshalYAML(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		_, _ = MarshalYAML(benchHeaders, benchRecords)
+		if _, err := csvpputil.MarshalYAML(benchHeaders, benchRecords); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkJSONEncoder_Encode(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		enc := NewJSONEncoder(io.Discard, benchHeaders)
+		enc := csvpputil.NewJSONEncoder(io.Discard, benchHeaders)
 		for _, record := range benchRecords {
-			_ = enc.Encode(record)
+			if err := enc.Encode(record); err != nil {
+				b.Fatal(err)
+			}
 		}
-		_ = enc.Close()
+		if err := enc.Close(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkYAMLEncoder_Encode(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		enc := NewYAMLEncoder(io.Discard, benchHeaders)
+		enc := csvpputil.NewYAMLEncoder(io.Discard, benchHeaders)
 		for _, record := range benchRecords {
-			_ = enc.Encode(record)
+			if err := enc.Encode(record); err != nil {
+				b.Fatal(err)
+			}
 		}
-		_ = enc.Close()
+		if err := enc.Close(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -89,9 +102,13 @@ func BenchmarkJSONEncoder_SingleRecord(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, benchHeaders)
-		_ = enc.Encode(benchRecord)
-		_ = enc.Close()
+		enc := csvpputil.NewJSONEncoder(&buf, benchHeaders)
+		if err := enc.Encode(benchRecord); err != nil {
+			b.Fatal(err)
+		}
+		if err := enc.Close(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -99,8 +116,12 @@ func BenchmarkYAMLEncoder_SingleRecord(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
 		var buf bytes.Buffer
-		enc := NewYAMLEncoder(&buf, benchHeaders)
-		_ = enc.Encode(benchRecord)
-		_ = enc.Close()
+		enc := csvpputil.NewYAMLEncoder(&buf, benchHeaders)
+		if err := enc.Encode(benchRecord); err != nil {
+			b.Fatal(err)
+		}
+		if err := enc.Close(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

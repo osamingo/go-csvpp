@@ -82,9 +82,15 @@ func ExampleJSONEncoder() {
 
 	enc := csvpputil.NewJSONEncoder(os.Stdout, headers, csvpputil.WithDeterministic(true))
 
-	_ = enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}})
-	_ = enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}})
-	_ = enc.Close()
+	if err := enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
+		log.Fatal(err)
+	}
+	if err := enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
+		log.Fatal(err)
+	}
+	if err := enc.Close(); err != nil {
+		log.Fatal(err)
+	}
 
 	// Output:
 	// [{"name":"Alice","score":"100"},{"name":"Bob","score":"85"}]
@@ -98,9 +104,15 @@ func ExampleYAMLEncoder() {
 
 	enc := csvpputil.NewYAMLEncoder(os.Stdout, headers)
 
-	_ = enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}})
-	_ = enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}})
-	_ = enc.Close()
+	if err := enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
+		log.Fatal(err)
+	}
+	if err := enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
+		log.Fatal(err)
+	}
+	if err := enc.Close(); err != nil {
+		log.Fatal(err)
+	}
 
 	// Output:
 	// - name: Alice
