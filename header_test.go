@@ -1,9 +1,11 @@
-package csvpp
+package csvpp_test
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 func TestParseColumnHeader(t *testing.T) {
@@ -12,110 +14,110 @@ func TestParseColumnHeader(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		want    *ColumnHeader
+		want    *csvpp.ColumnHeader
 		wantErr bool
 	}{
 		{
 			name:  "success: simple field",
 			input: "name",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name: "name",
-				Kind: SimpleField,
+				Kind: csvpp.SimpleField,
 			},
 		},
 		{
 			name:  "success: simple field with underscore",
 			input: "first_name",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name: "first_name",
-				Kind: SimpleField,
+				Kind: csvpp.SimpleField,
 			},
 		},
 		{
 			name:  "success: simple field with hyphen",
 			input: "first-name",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name: "first-name",
-				Kind: SimpleField,
+				Kind: csvpp.SimpleField,
 			},
 		},
 		{
 			name:  "success: simple field with digits",
 			input: "field123",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name: "field123",
-				Kind: SimpleField,
+				Kind: csvpp.SimpleField,
 			},
 		},
 		{
 			name:  "success: array field with default delimiter",
 			input: "phone[]",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:           "phone",
-				Kind:           ArrayField,
-				ArrayDelimiter: DefaultArrayDelimiter,
+				Kind:           csvpp.ArrayField,
+				ArrayDelimiter: csvpp.DefaultArrayDelimiter,
 			},
 		},
 		{
 			name:  "success: array field with custom delimiter",
 			input: "phone[|]",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:           "phone",
-				Kind:           ArrayField,
+				Kind:           csvpp.ArrayField,
 				ArrayDelimiter: '|',
 			},
 		},
 		{
 			name:  "success: structured field with default delimiter",
 			input: "geo(lat^lon)",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:               "geo",
-				Kind:               StructuredField,
-				ComponentDelimiter: DefaultComponentDelimiter,
-				Components: []*ColumnHeader{
-					{Name: "lat", Kind: SimpleField},
-					{Name: "lon", Kind: SimpleField},
+				Kind:               csvpp.StructuredField,
+				ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+				Components: []*csvpp.ColumnHeader{
+					{Name: "lat", Kind: csvpp.SimpleField},
+					{Name: "lon", Kind: csvpp.SimpleField},
 				},
 			},
 		},
 		{
 			name:  "success: structured field with custom delimiter",
 			input: "geo;(lat;lon)",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:               "geo",
-				Kind:               StructuredField,
+				Kind:               csvpp.StructuredField,
 				ComponentDelimiter: ';',
-				Components: []*ColumnHeader{
-					{Name: "lat", Kind: SimpleField},
-					{Name: "lon", Kind: SimpleField},
+				Components: []*csvpp.ColumnHeader{
+					{Name: "lat", Kind: csvpp.SimpleField},
+					{Name: "lon", Kind: csvpp.SimpleField},
 				},
 			},
 		},
 		{
 			name:  "success: array structured field",
 			input: "address[](type^street)",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:               "address",
-				Kind:               ArrayStructuredField,
-				ArrayDelimiter:     DefaultArrayDelimiter,
-				ComponentDelimiter: DefaultComponentDelimiter,
-				Components: []*ColumnHeader{
-					{Name: "type", Kind: SimpleField},
-					{Name: "street", Kind: SimpleField},
+				Kind:               csvpp.ArrayStructuredField,
+				ArrayDelimiter:     csvpp.DefaultArrayDelimiter,
+				ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+				Components: []*csvpp.ColumnHeader{
+					{Name: "type", Kind: csvpp.SimpleField},
+					{Name: "street", Kind: csvpp.SimpleField},
 				},
 			},
 		},
 		{
 			name:  "success: array structured field with custom delimiters",
 			input: "address[|];(type;street)",
-			want: &ColumnHeader{
+			want: &csvpp.ColumnHeader{
 				Name:               "address",
-				Kind:               ArrayStructuredField,
+				Kind:               csvpp.ArrayStructuredField,
 				ArrayDelimiter:     '|',
 				ComponentDelimiter: ';',
-				Components: []*ColumnHeader{
-					{Name: "type", Kind: SimpleField},
-					{Name: "street", Kind: SimpleField},
+				Components: []*csvpp.ColumnHeader{
+					{Name: "type", Kind: csvpp.SimpleField},
+					{Name: "street", Kind: csvpp.SimpleField},
 				},
 			},
 		},
@@ -145,7 +147,7 @@ func TestParseColumnHeader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := parseColumnHeader(tt.input)
+			got, err := csvpp.ParseColumnHeader(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseColumnHeader() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -222,7 +224,7 @@ func TestParseName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotName, gotRest, err := parseName(tt.input)
+			gotName, gotRest, err := csvpp.ParseName(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseName() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -253,7 +255,7 @@ func TestParseArrayDelimiter(t *testing.T) {
 		{
 			name:      "success: default delimiter",
 			input:     "[]",
-			wantDelim: DefaultArrayDelimiter,
+			wantDelim: csvpp.DefaultArrayDelimiter,
 			wantRest:  "",
 		},
 		{
@@ -265,7 +267,7 @@ func TestParseArrayDelimiter(t *testing.T) {
 		{
 			name:      "success: with rest",
 			input:     "[](lat^lon)",
-			wantDelim: DefaultArrayDelimiter,
+			wantDelim: csvpp.DefaultArrayDelimiter,
 			wantRest:  "(lat^lon)",
 		},
 		{
@@ -290,7 +292,7 @@ func TestParseArrayDelimiter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotDelim, gotRest, err := parseArrayDelimiter(tt.input)
+			gotDelim, gotRest, err := csvpp.ParseArrayDelimiter(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseArrayDelimiter() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -331,7 +333,7 @@ func TestIsFieldChar(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isFieldChar(tt.input)
+			got := csvpp.IsFieldChar(tt.input)
 			if got != tt.want {
 				t.Errorf("isFieldChar(%q) = %v, want %v", tt.input, got, tt.want)
 			}
@@ -384,7 +386,7 @@ func TestSplitByDelimiter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := splitByDelimiter(tt.input, tt.delim)
+			got := csvpp.SplitByDelimiter(tt.input, tt.delim)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("splitByDelimiter() mismatch (-want +got):\n%s", diff)
 			}
@@ -399,32 +401,32 @@ func TestParseHeaderRecordWithMaxDepth(t *testing.T) {
 		name     string
 		fields   []string
 		maxDepth int
-		want     []*ColumnHeader
+		want     []*csvpp.ColumnHeader
 		wantErr  bool
 	}{
 		{
 			name:     "success: simple fields",
 			fields:   []string{"name", "age"},
 			maxDepth: 10,
-			want: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "age", Kind: SimpleField},
+			want: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "age", Kind: csvpp.SimpleField},
 			},
 		},
 		{
 			name:     "success: mixed fields",
 			fields:   []string{"name", "phone[]", "geo(lat^lon)"},
 			maxDepth: 10,
-			want: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "phone", Kind: ArrayField, ArrayDelimiter: DefaultArrayDelimiter},
+			want: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: csvpp.DefaultArrayDelimiter},
 				{
 					Name:               "geo",
-					Kind:               StructuredField,
-					ComponentDelimiter: DefaultComponentDelimiter,
-					Components: []*ColumnHeader{
-						{Name: "lat", Kind: SimpleField},
-						{Name: "lon", Kind: SimpleField},
+					Kind:               csvpp.StructuredField,
+					ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+					Components: []*csvpp.ColumnHeader{
+						{Name: "lat", Kind: csvpp.SimpleField},
+						{Name: "lon", Kind: csvpp.SimpleField},
 					},
 				},
 			},
@@ -447,7 +449,7 @@ func TestParseHeaderRecordWithMaxDepth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := parseHeaderRecordWithMaxDepth(tt.fields, tt.maxDepth)
+			got, err := csvpp.ParseHeaderRecordWithMaxDepth(tt.fields, tt.maxDepth)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseHeaderRecordWithMaxDepth() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -489,7 +491,7 @@ func TestParseColumnHeaderWithDepth_NestingLimit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := parseColumnHeaderWithDepth(tt.input, 0, tt.maxDepth)
+			_, err := csvpp.ParseColumnHeaderWithDepth(tt.input, 0, tt.maxDepth)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseColumnHeaderWithDepth() error = %v, wantErr %v", err, tt.wantErr)
 			}

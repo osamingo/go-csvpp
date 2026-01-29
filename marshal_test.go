@@ -1,4 +1,4 @@
-package csvpp
+package csvpp_test
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 type SimpleRecord struct {
@@ -73,7 +75,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,30\nBob,25\n"
 		var records []SimpleRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -93,7 +95,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,phone[]\nAlice,111~222\nBob,333\n"
 		var records []ArrayRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -113,7 +115,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,geo(lat^lon)\nAlice,34.0522^-118.2437\n"
 		var records []StructuredRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -132,7 +134,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,address[](type^street)\nAlice,home^123 Main~work^456 Oak\n"
 		var records []ArrayStructuredRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -157,7 +159,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,30\n"
 		var records []IgnoredFieldRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -176,7 +178,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\n"
 		var records []SimpleRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -192,7 +194,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,30\n"
 		var records []SimpleRecord
 
-		err := Unmarshal(strings.NewReader(input), records)
+		err := csvpp.Unmarshal(strings.NewReader(input), records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for non-pointer dst")
 		}
@@ -204,7 +206,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,30\n"
 		var record SimpleRecord
 
-		err := Unmarshal(strings.NewReader(input), &record)
+		err := csvpp.Unmarshal(strings.NewReader(input), &record)
 		if err == nil {
 			t.Error("Unmarshal() expected error for non-slice dst")
 		}
@@ -216,7 +218,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,30\n"
 		var records []string
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for non-struct element")
 		}
@@ -228,7 +230,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age,score,height,active\nAlice,30,100,1.65,true\nBob,25,85,1.80,false\n"
 		var records []AllTypesRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -248,7 +250,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age,score,height,active\nAlice,,,,"
 		var records []AllTypesRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -267,7 +269,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,geo(lat^lon)\nAlice,34.0522^-118.2437\n"
 		var records []PointerStructRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -286,7 +288,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,scores[]\nAlice,90~85~95\n"
 		var records []NestedArrayRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
@@ -305,7 +307,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age\nAlice,invalid\n"
 		var records []SimpleRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for invalid int")
 		}
@@ -317,7 +319,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age,score,height,active\nAlice,30,invalid,1.65,true\n"
 		var records []AllTypesRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for invalid uint")
 		}
@@ -329,7 +331,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age,score,height,active\nAlice,30,100,invalid,true\n"
 		var records []AllTypesRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for invalid float")
 		}
@@ -341,7 +343,7 @@ func TestUnmarshal(t *testing.T) {
 		input := "name,age,score,height,active\nAlice,30,100,1.65,invalid\n"
 		var records []AllTypesRecord
 
-		err := Unmarshal(strings.NewReader(input), &records)
+		err := csvpp.Unmarshal(strings.NewReader(input), &records)
 		if err == nil {
 			t.Error("Unmarshal() expected error for invalid bool")
 		}
@@ -360,7 +362,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -381,7 +383,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -401,7 +403,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -427,7 +429,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -445,7 +447,7 @@ func TestMarshal(t *testing.T) {
 		var records []SimpleRecord
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -464,7 +466,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, &records)
+		err := csvpp.Marshal(&buf, &records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -482,7 +484,7 @@ func TestMarshal(t *testing.T) {
 		record := SimpleRecord{Name: "Alice", Age: 30}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, record)
+		err := csvpp.Marshal(&buf, record)
 		if err == nil {
 			t.Error("Marshal() expected error for non-slice src")
 		}
@@ -494,7 +496,7 @@ func TestMarshal(t *testing.T) {
 		records := []string{"Alice", "Bob"}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err == nil {
 			t.Error("Marshal() expected error for non-struct element")
 		}
@@ -509,7 +511,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -529,7 +531,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -549,7 +551,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -569,7 +571,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		err := Marshal(&buf, records)
+		err := csvpp.Marshal(&buf, records)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
@@ -594,12 +596,12 @@ func TestMarshalUnmarshal_RoundTrip(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		if err := Marshal(&buf, original); err != nil {
+		if err := csvpp.Marshal(&buf, original); err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
 		var decoded []SimpleRecord
-		if err := Unmarshal(&buf, &decoded); err != nil {
+		if err := csvpp.Unmarshal(&buf, &decoded); err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
@@ -617,12 +619,12 @@ func TestMarshalUnmarshal_RoundTrip(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		if err := Marshal(&buf, original); err != nil {
+		if err := csvpp.Marshal(&buf, original); err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
 		var decoded []ArrayRecord
-		if err := Unmarshal(&buf, &decoded); err != nil {
+		if err := csvpp.Unmarshal(&buf, &decoded); err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
@@ -639,12 +641,12 @@ func TestMarshalUnmarshal_RoundTrip(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		if err := Marshal(&buf, original); err != nil {
+		if err := csvpp.Marshal(&buf, original); err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
 		var decoded []StructuredRecord
-		if err := Unmarshal(&buf, &decoded); err != nil {
+		if err := csvpp.Unmarshal(&buf, &decoded); err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
@@ -667,12 +669,12 @@ func TestMarshalUnmarshal_RoundTrip(t *testing.T) {
 		}
 
 		var buf bytes.Buffer
-		if err := Marshal(&buf, original); err != nil {
+		if err := csvpp.Marshal(&buf, original); err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
 		var decoded []ArrayStructuredRecord
-		if err := Unmarshal(&buf, &decoded); err != nil {
+		if err := csvpp.Unmarshal(&buf, &decoded); err != nil {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
@@ -721,7 +723,7 @@ func TestExtractTagName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := extractTagName(tt.input)
+			got := csvpp.ExtractTagName(tt.input)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("extractTagName() mismatch (-want +got):\n%s", diff)
 			}

@@ -1,9 +1,11 @@
-package csvpp
+package csvpp_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 // Benchmark data generators
@@ -50,7 +52,7 @@ func BenchmarkReader_Read_Simple(b *testing.B) {
 	input := generateSimpleCSV(100)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
+		r := csvpp.NewReader(strings.NewReader(input))
 		for {
 			_, err := r.Read()
 			if err != nil {
@@ -64,7 +66,7 @@ func BenchmarkReader_Read_Array(b *testing.B) {
 	input := generateArrayCSV(100)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
+		r := csvpp.NewReader(strings.NewReader(input))
 		for {
 			_, err := r.Read()
 			if err != nil {
@@ -78,7 +80,7 @@ func BenchmarkReader_Read_Structured(b *testing.B) {
 	input := generateStructuredCSV(100)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
+		r := csvpp.NewReader(strings.NewReader(input))
 		for {
 			_, err := r.Read()
 			if err != nil {
@@ -92,7 +94,7 @@ func BenchmarkReader_Read_ArrayStructured(b *testing.B) {
 	input := generateArrayStructuredCSV(100)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
+		r := csvpp.NewReader(strings.NewReader(input))
 		for {
 			_, err := r.Read()
 			if err != nil {
@@ -106,8 +108,10 @@ func BenchmarkReader_ReadAll_Simple(b *testing.B) {
 	input := generateSimpleCSV(1000)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
-		_, _ = r.ReadAll()
+		r := csvpp.NewReader(strings.NewReader(input))
+		if _, err := r.ReadAll(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -115,20 +119,22 @@ func BenchmarkReader_ReadAll_ArrayStructured(b *testing.B) {
 	input := generateArrayStructuredCSV(1000)
 
 	for b.Loop() {
-		r := NewReader(strings.NewReader(input))
-		_, _ = r.ReadAll()
+		r := csvpp.NewReader(strings.NewReader(input))
+		if _, err := r.ReadAll(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 // Writer Benchmarks
 
 func BenchmarkWriter_Write_Simple(b *testing.B) {
-	headers := []*ColumnHeader{
-		{Name: "id", Kind: SimpleField},
-		{Name: "name", Kind: SimpleField},
-		{Name: "age", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "id", Kind: csvpp.SimpleField},
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "1"},
 		{Value: "Alice"},
 		{Value: "30"},
@@ -136,23 +142,27 @@ func BenchmarkWriter_Write_Simple(b *testing.B) {
 
 	for b.Loop() {
 		var buf bytes.Buffer
-		w := NewWriter(&buf)
+		w := csvpp.NewWriter(&buf)
 		w.SetHeaders(headers)
-		_ = w.WriteHeader()
+		if err := w.WriteHeader(); err != nil {
+			b.Fatal(err)
+		}
 		for range 100 {
-			_ = w.Write(record)
+			if err := w.Write(record); err != nil {
+				b.Fatal(err)
+			}
 		}
 		w.Flush()
 	}
 }
 
 func BenchmarkWriter_Write_Array(b *testing.B) {
-	headers := []*ColumnHeader{
-		{Name: "id", Kind: SimpleField},
-		{Name: "name", Kind: SimpleField},
-		{Name: "tags", Kind: ArrayField, ArrayDelimiter: '~'},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "id", Kind: csvpp.SimpleField},
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "tags", Kind: csvpp.ArrayField, ArrayDelimiter: '~'},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "1"},
 		{Value: "Alice"},
 		{Values: []string{"go", "rust", "python", "java", "typescript"}},
@@ -160,63 +170,71 @@ func BenchmarkWriter_Write_Array(b *testing.B) {
 
 	for b.Loop() {
 		var buf bytes.Buffer
-		w := NewWriter(&buf)
+		w := csvpp.NewWriter(&buf)
 		w.SetHeaders(headers)
-		_ = w.WriteHeader()
+		if err := w.WriteHeader(); err != nil {
+			b.Fatal(err)
+		}
 		for range 100 {
-			_ = w.Write(record)
+			if err := w.Write(record); err != nil {
+				b.Fatal(err)
+			}
 		}
 		w.Flush()
 	}
 }
 
 func BenchmarkWriter_Write_ArrayStructured(b *testing.B) {
-	headers := []*ColumnHeader{
-		{Name: "id", Kind: SimpleField},
-		{Name: "name", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "id", Kind: csvpp.SimpleField},
+		{Name: "name", Kind: csvpp.SimpleField},
 		{
 			Name:               "address",
-			Kind:               ArrayStructuredField,
+			Kind:               csvpp.ArrayStructuredField,
 			ArrayDelimiter:     '~',
 			ComponentDelimiter: '^',
-			Components: []*ColumnHeader{
-				{Name: "street", Kind: SimpleField},
-				{Name: "city", Kind: SimpleField},
-				{Name: "state", Kind: SimpleField},
-				{Name: "zip", Kind: SimpleField},
+			Components: []*csvpp.ColumnHeader{
+				{Name: "street", Kind: csvpp.SimpleField},
+				{Name: "city", Kind: csvpp.SimpleField},
+				{Name: "state", Kind: csvpp.SimpleField},
+				{Name: "zip", Kind: csvpp.SimpleField},
 			},
 		},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "1"},
 		{Value: "Alice"},
-		{Components: []*Field{
-			{Components: []*Field{{Value: "123 Main St"}, {Value: "Los Angeles"}, {Value: "CA"}, {Value: "90210"}}},
-			{Components: []*Field{{Value: "456 Oak Ave"}, {Value: "New York"}, {Value: "NY"}, {Value: "10001"}}},
+		{Components: []*csvpp.Field{
+			{Components: []*csvpp.Field{{Value: "123 Main St"}, {Value: "Los Angeles"}, {Value: "CA"}, {Value: "90210"}}},
+			{Components: []*csvpp.Field{{Value: "456 Oak Ave"}, {Value: "New York"}, {Value: "NY"}, {Value: "10001"}}},
 		}},
 	}
 
 	for b.Loop() {
 		var buf bytes.Buffer
-		w := NewWriter(&buf)
+		w := csvpp.NewWriter(&buf)
 		w.SetHeaders(headers)
-		_ = w.WriteHeader()
+		if err := w.WriteHeader(); err != nil {
+			b.Fatal(err)
+		}
 		for range 100 {
-			_ = w.Write(record)
+			if err := w.Write(record); err != nil {
+				b.Fatal(err)
+			}
 		}
 		w.Flush()
 	}
 }
 
 func BenchmarkWriter_WriteAll(b *testing.B) {
-	headers := []*ColumnHeader{
-		{Name: "id", Kind: SimpleField},
-		{Name: "name", Kind: SimpleField},
-		{Name: "age", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "id", Kind: csvpp.SimpleField},
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
 	}
-	records := make([][]*Field, 1000)
+	records := make([][]*csvpp.Field, 1000)
 	for i := range records {
-		records[i] = []*Field{
+		records[i] = []*csvpp.Field{
 			{Value: "1"},
 			{Value: "Alice"},
 			{Value: "30"},
@@ -225,9 +243,11 @@ func BenchmarkWriter_WriteAll(b *testing.B) {
 
 	for b.Loop() {
 		var buf bytes.Buffer
-		w := NewWriter(&buf)
+		w := csvpp.NewWriter(&buf)
 		w.SetHeaders(headers)
-		_ = w.WriteAll(records)
+		if err := w.WriteAll(records); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -235,31 +255,41 @@ func BenchmarkWriter_WriteAll(b *testing.B) {
 
 func BenchmarkParseColumnHeader_Simple(b *testing.B) {
 	for b.Loop() {
-		_, _ = parseColumnHeader("name")
+		if _, err := csvpp.ParseColumnHeader("name"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkParseColumnHeader_Array(b *testing.B) {
 	for b.Loop() {
-		_, _ = parseColumnHeader("tags[]")
+		if _, err := csvpp.ParseColumnHeader("tags[]"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkParseColumnHeader_Structured(b *testing.B) {
 	for b.Loop() {
-		_, _ = parseColumnHeader("geo(lat^lon)")
+		if _, err := csvpp.ParseColumnHeader("geo(lat^lon)"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkParseColumnHeader_ArrayStructured(b *testing.B) {
 	for b.Loop() {
-		_, _ = parseColumnHeader("address[](street^city^state^zip)")
+		if _, err := csvpp.ParseColumnHeader("address[](street^city^state^zip)"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 func BenchmarkParseColumnHeader_Nested(b *testing.B) {
 	for b.Loop() {
-		_, _ = parseColumnHeader("data;(outer(inner1^inner2);simple)")
+		if _, err := csvpp.ParseColumnHeader("data;(outer(inner1^inner2);simple)"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -281,7 +311,9 @@ Charlie,35,555-1111~555-2222~555-3333
 
 	for b.Loop() {
 		var people []BenchmarkPerson
-		_ = Unmarshal(bytes.NewReader(inputBytes), &people)
+		if err := csvpp.Unmarshal(bytes.NewReader(inputBytes), &people); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -294,7 +326,9 @@ func BenchmarkMarshal(b *testing.B) {
 
 	for b.Loop() {
 		var buf bytes.Buffer
-		_ = Marshal(&buf, people)
+		if err := csvpp.Marshal(&buf, people); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -304,7 +338,7 @@ func BenchmarkSplitByRune(b *testing.B) {
 	input := "a~b~c~d~e~f~g~h~i~j"
 
 	for b.Loop() {
-		_ = splitByRune(input, '~')
+		_ = csvpp.SplitByRune(input, '~')
 	}
 }
 
@@ -319,6 +353,6 @@ func BenchmarkSplitByRune_Long(b *testing.B) {
 	input := sb.String()
 
 	for b.Loop() {
-		_ = splitByRune(input, '~')
+		_ = csvpp.SplitByRune(input, '~')
 	}
 }
