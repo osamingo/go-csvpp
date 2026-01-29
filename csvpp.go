@@ -17,7 +17,7 @@ const (
 )
 
 // String returns the string representation of FieldKind.
-func (k FieldKind) String() string {
+func (k FieldKind) String() string { //nostyle:recvtype
 	switch k {
 	case SimpleField:
 		return "SimpleField"
