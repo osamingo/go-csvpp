@@ -1,4 +1,4 @@
-package csvpp
+package csvpp_test
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 // goldenReadTest represents a read test case from JSON.
@@ -104,7 +106,7 @@ func runGoldenReadTest(t *testing.T, file string) {
 		t.Fatalf("failed to parse test file: %v", err)
 	}
 
-	r := NewReader(strings.NewReader(tc.Input))
+	r := csvpp.NewReader(strings.NewReader(tc.Input))
 
 	// Parse headers
 	headers, err := r.Headers()
@@ -122,7 +124,7 @@ func runGoldenReadTest(t *testing.T, file string) {
 	}
 
 	// Parse records
-	var records [][]*Field
+	var records [][]*csvpp.Field
 	for {
 		record, err := r.Read()
 		if err != nil {
@@ -157,7 +159,7 @@ func runGoldenErrorTest(t *testing.T, file string) {
 		t.Fatalf("failed to parse test file: %v", err)
 	}
 
-	r := NewReader(strings.NewReader(tc.Input))
+	r := csvpp.NewReader(strings.NewReader(tc.Input))
 
 	_, err = r.Headers()
 	if err == nil {
@@ -191,7 +193,7 @@ func runGoldenRoundtripTest(t *testing.T, file string) {
 	}
 
 	// Read
-	r := NewReader(bytes.NewReader(input))
+	r := csvpp.NewReader(bytes.NewReader(input))
 	headers, err := r.Headers()
 	if err != nil {
 		t.Fatalf("failed to parse headers: %v", err)
@@ -204,7 +206,7 @@ func runGoldenRoundtripTest(t *testing.T, file string) {
 
 	// Write
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.SetHeaders(headers)
 
 	if err := w.WriteHeader(); err != nil {
@@ -227,7 +229,7 @@ func runGoldenRoundtripTest(t *testing.T, file string) {
 	}
 }
 
-func verifyHeader(t *testing.T, index int, got *ColumnHeader, want goldenHeader) {
+func verifyHeader(t *testing.T, index int, got *csvpp.ColumnHeader, want goldenHeader) {
 	t.Helper()
 
 	if got.Name != want.Name {
@@ -264,7 +266,7 @@ func verifyHeader(t *testing.T, index int, got *ColumnHeader, want goldenHeader)
 	}
 }
 
-func verifyRecord(t *testing.T, recordIndex int, got []*Field, want []goldenField) {
+func verifyRecord(t *testing.T, recordIndex int, got []*csvpp.Field, want []goldenField) {
 	t.Helper()
 
 	if len(got) != len(want) {
@@ -277,7 +279,7 @@ func verifyRecord(t *testing.T, recordIndex int, got []*Field, want []goldenFiel
 	}
 }
 
-func verifyField(t *testing.T, recordIndex, fieldIndex int, got *Field, want goldenField) {
+func verifyField(t *testing.T, recordIndex, fieldIndex int, got *csvpp.Field, want goldenField) {
 	t.Helper()
 
 	prefix := func() string {
@@ -307,17 +309,17 @@ func verifyField(t *testing.T, recordIndex, fieldIndex int, got *Field, want gol
 	}
 }
 
-func parseKind(s string) FieldKind {
+func parseKind(s string) csvpp.FieldKind {
 	switch s {
 	case "simple":
-		return SimpleField
+		return csvpp.SimpleField
 	case "array":
-		return ArrayField
+		return csvpp.ArrayField
 	case "structured":
-		return StructuredField
+		return csvpp.StructuredField
 	case "arrayStructured":
-		return ArrayStructuredField
+		return csvpp.ArrayStructuredField
 	default:
-		return SimpleField
+		return csvpp.SimpleField
 	}
 }

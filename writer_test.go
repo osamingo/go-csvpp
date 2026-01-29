@@ -1,10 +1,12 @@
-package csvpp
+package csvpp_test
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 func TestNewWriter(t *testing.T) {
@@ -14,7 +16,7 @@ func TestNewWriter(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		w := NewWriter(&buf)
+		w := csvpp.NewWriter(&buf)
 		if w.Comma != ',' {
 			t.Errorf("NewWriter().Comma = %q, want ','", w.Comma)
 		}
@@ -26,45 +28,45 @@ func TestWriter_WriteHeader(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		headers []*ColumnHeader
+		headers []*csvpp.ColumnHeader
 		want    string
 		wantErr bool
 	}{
 		{
 			name: "success: simple headers",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "age", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "age", Kind: csvpp.SimpleField},
 			},
 			want: "name,age\n",
 		},
 		{
 			name: "success: array header with default delimiter",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "phone", Kind: ArrayField, ArrayDelimiter: DefaultArrayDelimiter},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: csvpp.DefaultArrayDelimiter},
 			},
 			want: "name,phone[]\n",
 		},
 		{
 			name: "success: array header with custom delimiter",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "phone", Kind: ArrayField, ArrayDelimiter: '|'},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: '|'},
 			},
 			want: "name,phone[|]\n",
 		},
 		{
 			name: "success: structured header",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
 				{
 					Name:               "geo",
-					Kind:               StructuredField,
-					ComponentDelimiter: DefaultComponentDelimiter,
-					Components: []*ColumnHeader{
-						{Name: "lat", Kind: SimpleField},
-						{Name: "lon", Kind: SimpleField},
+					Kind:               csvpp.StructuredField,
+					ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+					Components: []*csvpp.ColumnHeader{
+						{Name: "lat", Kind: csvpp.SimpleField},
+						{Name: "lon", Kind: csvpp.SimpleField},
 					},
 				},
 			},
@@ -72,15 +74,15 @@ func TestWriter_WriteHeader(t *testing.T) {
 		},
 		{
 			name: "success: structured header with custom delimiter",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
 				{
 					Name:               "geo",
-					Kind:               StructuredField,
+					Kind:               csvpp.StructuredField,
 					ComponentDelimiter: ';',
-					Components: []*ColumnHeader{
-						{Name: "lat", Kind: SimpleField},
-						{Name: "lon", Kind: SimpleField},
+					Components: []*csvpp.ColumnHeader{
+						{Name: "lat", Kind: csvpp.SimpleField},
+						{Name: "lon", Kind: csvpp.SimpleField},
 					},
 				},
 			},
@@ -88,16 +90,16 @@ func TestWriter_WriteHeader(t *testing.T) {
 		},
 		{
 			name: "success: array structured header",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
 				{
 					Name:               "address",
-					Kind:               ArrayStructuredField,
-					ArrayDelimiter:     DefaultArrayDelimiter,
-					ComponentDelimiter: DefaultComponentDelimiter,
-					Components: []*ColumnHeader{
-						{Name: "type", Kind: SimpleField},
-						{Name: "street", Kind: SimpleField},
+					Kind:               csvpp.ArrayStructuredField,
+					ArrayDelimiter:     csvpp.DefaultArrayDelimiter,
+					ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+					Components: []*csvpp.ColumnHeader{
+						{Name: "type", Kind: csvpp.SimpleField},
+						{Name: "street", Kind: csvpp.SimpleField},
 					},
 				},
 			},
@@ -115,7 +117,7 @@ func TestWriter_WriteHeader(t *testing.T) {
 			t.Parallel()
 
 			var buf bytes.Buffer
-			w := NewWriter(&buf)
+			w := csvpp.NewWriter(&buf)
 			w.SetHeaders(tt.headers)
 
 			err := w.WriteHeader()
@@ -141,17 +143,17 @@ func TestWriter_Write(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		headers []*ColumnHeader
-		record  []*Field
+		headers []*csvpp.ColumnHeader
+		record  []*csvpp.Field
 		want    string
 	}{
 		{
 			name: "success: simple fields",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "age", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "age", Kind: csvpp.SimpleField},
 			},
-			record: []*Field{
+			record: []*csvpp.Field{
 				{Value: "Alice"},
 				{Value: "30"},
 			},
@@ -159,11 +161,11 @@ func TestWriter_Write(t *testing.T) {
 		},
 		{
 			name: "success: array field",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "phone", Kind: ArrayField, ArrayDelimiter: DefaultArrayDelimiter},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: csvpp.DefaultArrayDelimiter},
 			},
-			record: []*Field{
+			record: []*csvpp.Field{
 				{Value: "Alice"},
 				{Values: []string{"555-1234", "555-5678"}},
 			},
@@ -171,21 +173,21 @@ func TestWriter_Write(t *testing.T) {
 		},
 		{
 			name: "success: structured field",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
 				{
 					Name:               "geo",
-					Kind:               StructuredField,
-					ComponentDelimiter: DefaultComponentDelimiter,
-					Components: []*ColumnHeader{
-						{Name: "lat", Kind: SimpleField},
-						{Name: "lon", Kind: SimpleField},
+					Kind:               csvpp.StructuredField,
+					ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+					Components: []*csvpp.ColumnHeader{
+						{Name: "lat", Kind: csvpp.SimpleField},
+						{Name: "lon", Kind: csvpp.SimpleField},
 					},
 				},
 			},
-			record: []*Field{
+			record: []*csvpp.Field{
 				{Value: "Alice"},
-				{Components: []*Field{
+				{Components: []*csvpp.Field{
 					{Value: "34.0522"},
 					{Value: "-118.2437"},
 				}},
@@ -194,35 +196,35 @@ func TestWriter_Write(t *testing.T) {
 		},
 		{
 			name: "success: array structured field",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
 				{
 					Name:               "address",
-					Kind:               ArrayStructuredField,
-					ArrayDelimiter:     DefaultArrayDelimiter,
-					ComponentDelimiter: DefaultComponentDelimiter,
-					Components: []*ColumnHeader{
-						{Name: "type", Kind: SimpleField},
-						{Name: "street", Kind: SimpleField},
+					Kind:               csvpp.ArrayStructuredField,
+					ArrayDelimiter:     csvpp.DefaultArrayDelimiter,
+					ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+					Components: []*csvpp.ColumnHeader{
+						{Name: "type", Kind: csvpp.SimpleField},
+						{Name: "street", Kind: csvpp.SimpleField},
 					},
 				},
 			},
-			record: []*Field{
+			record: []*csvpp.Field{
 				{Value: "Alice"},
-				{Components: []*Field{
-					{Components: []*Field{{Value: "home"}, {Value: "123 Main"}}},
-					{Components: []*Field{{Value: "work"}, {Value: "456 Oak"}}},
+				{Components: []*csvpp.Field{
+					{Components: []*csvpp.Field{{Value: "home"}, {Value: "123 Main"}}},
+					{Components: []*csvpp.Field{{Value: "work"}, {Value: "456 Oak"}}},
 				}},
 			},
 			want: "Alice,home^123 Main~work^456 Oak\n",
 		},
 		{
 			name: "success: empty array field",
-			headers: []*ColumnHeader{
-				{Name: "name", Kind: SimpleField},
-				{Name: "phone", Kind: ArrayField, ArrayDelimiter: DefaultArrayDelimiter},
+			headers: []*csvpp.ColumnHeader{
+				{Name: "name", Kind: csvpp.SimpleField},
+				{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: csvpp.DefaultArrayDelimiter},
 			},
-			record: []*Field{
+			record: []*csvpp.Field{
 				{Value: "Alice"},
 				{Values: []string{}},
 			},
@@ -235,7 +237,7 @@ func TestWriter_Write(t *testing.T) {
 			t.Parallel()
 
 			var buf bytes.Buffer
-			w := NewWriter(&buf)
+			w := csvpp.NewWriter(&buf)
 			w.SetHeaders(tt.headers)
 
 			err := w.Write(tt.record)
@@ -255,17 +257,17 @@ func TestWriter_Write(t *testing.T) {
 func TestWriter_WriteAll(t *testing.T) {
 	t.Parallel()
 
-	headers := []*ColumnHeader{
-		{Name: "name", Kind: SimpleField},
-		{Name: "age", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
 	}
-	records := [][]*Field{
+	records := [][]*csvpp.Field{
 		{{Value: "Alice"}, {Value: "30"}},
 		{{Value: "Bob"}, {Value: "25"}},
 	}
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.SetHeaders(headers)
 
 	err := w.WriteAll(records)
@@ -283,17 +285,17 @@ func TestWriter_WriteAll(t *testing.T) {
 func TestWriter_CustomComma(t *testing.T) {
 	t.Parallel()
 
-	headers := []*ColumnHeader{
-		{Name: "name", Kind: SimpleField},
-		{Name: "age", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "Alice"},
 		{Value: "30"},
 	}
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.Comma = ';'
 	w.SetHeaders(headers)
 
@@ -315,15 +317,15 @@ func TestWriter_CustomComma(t *testing.T) {
 func TestWriter_UseCRLF(t *testing.T) {
 	t.Parallel()
 
-	headers := []*ColumnHeader{
-		{Name: "name", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "Alice"},
 	}
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.UseCRLF = true
 	w.SetHeaders(headers)
 
@@ -347,47 +349,47 @@ func TestFormatColumnHeader(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		header *ColumnHeader
+		header *csvpp.ColumnHeader
 		want   string
 	}{
 		{
 			name:   "success: simple field",
-			header: &ColumnHeader{Name: "name", Kind: SimpleField},
+			header: &csvpp.ColumnHeader{Name: "name", Kind: csvpp.SimpleField},
 			want:   "name",
 		},
 		{
 			name:   "success: array field with default delimiter",
-			header: &ColumnHeader{Name: "phone", Kind: ArrayField, ArrayDelimiter: DefaultArrayDelimiter},
+			header: &csvpp.ColumnHeader{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: csvpp.DefaultArrayDelimiter},
 			want:   "phone[]",
 		},
 		{
 			name:   "success: array field with custom delimiter",
-			header: &ColumnHeader{Name: "phone", Kind: ArrayField, ArrayDelimiter: '|'},
+			header: &csvpp.ColumnHeader{Name: "phone", Kind: csvpp.ArrayField, ArrayDelimiter: '|'},
 			want:   "phone[|]",
 		},
 		{
 			name: "success: structured field",
-			header: &ColumnHeader{
+			header: &csvpp.ColumnHeader{
 				Name:               "geo",
-				Kind:               StructuredField,
-				ComponentDelimiter: DefaultComponentDelimiter,
-				Components: []*ColumnHeader{
-					{Name: "lat", Kind: SimpleField},
-					{Name: "lon", Kind: SimpleField},
+				Kind:               csvpp.StructuredField,
+				ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+				Components: []*csvpp.ColumnHeader{
+					{Name: "lat", Kind: csvpp.SimpleField},
+					{Name: "lon", Kind: csvpp.SimpleField},
 				},
 			},
 			want: "geo(lat^lon)",
 		},
 		{
 			name: "success: array structured field",
-			header: &ColumnHeader{
+			header: &csvpp.ColumnHeader{
 				Name:               "address",
-				Kind:               ArrayStructuredField,
-				ArrayDelimiter:     DefaultArrayDelimiter,
-				ComponentDelimiter: DefaultComponentDelimiter,
-				Components: []*ColumnHeader{
-					{Name: "type", Kind: SimpleField},
-					{Name: "street", Kind: SimpleField},
+				Kind:               csvpp.ArrayStructuredField,
+				ArrayDelimiter:     csvpp.DefaultArrayDelimiter,
+				ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+				Components: []*csvpp.ColumnHeader{
+					{Name: "type", Kind: csvpp.SimpleField},
+					{Name: "street", Kind: csvpp.SimpleField},
 				},
 			},
 			want: "address[](type^street)",
@@ -398,7 +400,7 @@ func TestFormatColumnHeader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := formatColumnHeader(tt.header)
+			got := csvpp.FormatColumnHeader(tt.header)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("formatColumnHeader() mismatch (-want +got):\n%s", diff)
 			}
@@ -409,25 +411,25 @@ func TestFormatColumnHeader(t *testing.T) {
 func TestWriter_EmptyStructuredField(t *testing.T) {
 	t.Parallel()
 
-	headers := []*ColumnHeader{
-		{Name: "name", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
 		{
 			Name:               "geo",
-			Kind:               StructuredField,
-			ComponentDelimiter: DefaultComponentDelimiter,
-			Components: []*ColumnHeader{
-				{Name: "lat", Kind: SimpleField},
-				{Name: "lon", Kind: SimpleField},
+			Kind:               csvpp.StructuredField,
+			ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+			Components: []*csvpp.ColumnHeader{
+				{Name: "lat", Kind: csvpp.SimpleField},
+				{Name: "lon", Kind: csvpp.SimpleField},
 			},
 		},
 	}
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "Alice"},
-		{Components: []*Field{}},
+		{Components: []*csvpp.Field{}},
 	}
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.SetHeaders(headers)
 
 	err := w.Write(record)
@@ -447,7 +449,7 @@ func TestWriter_Flush(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 
 	// Flush before writing anything should not panic
 	w.Flush()
@@ -461,10 +463,10 @@ func TestWriter_WriteAllError(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	// Don't set headers - should cause error
 
-	records := [][]*Field{
+	records := [][]*csvpp.Field{
 		{{Value: "Alice"}, {Value: "30"}},
 	}
 
@@ -477,17 +479,17 @@ func TestWriter_WriteAllError(t *testing.T) {
 func TestWriter_NoHeaderForRecord(t *testing.T) {
 	t.Parallel()
 
-	headers := []*ColumnHeader{
-		{Name: "name", Kind: SimpleField},
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
 	}
 	// Record has more fields than headers
-	record := []*Field{
+	record := []*csvpp.Field{
 		{Value: "Alice"},
 		{Value: "extra"},
 	}
 
 	var buf bytes.Buffer
-	w := NewWriter(&buf)
+	w := csvpp.NewWriter(&buf)
 	w.SetHeaders(headers)
 
 	err := w.Write(record)
@@ -510,7 +512,7 @@ func TestFormatComponentList(t *testing.T) {
 	t.Run("success: empty component list", func(t *testing.T) {
 		t.Parallel()
 
-		got := formatComponentList([]*ColumnHeader{}, '^')
+		got := csvpp.FormatComponentList([]*csvpp.ColumnHeader{}, '^')
 		if got != "" {
 			t.Errorf("formatComponentList() = %q, want empty string", got)
 		}
@@ -519,11 +521,11 @@ func TestFormatComponentList(t *testing.T) {
 	t.Run("success: multiple components", func(t *testing.T) {
 		t.Parallel()
 
-		components := []*ColumnHeader{
-			{Name: "lat", Kind: SimpleField},
-			{Name: "lon", Kind: SimpleField},
+		components := []*csvpp.ColumnHeader{
+			{Name: "lat", Kind: csvpp.SimpleField},
+			{Name: "lon", Kind: csvpp.SimpleField},
 		}
-		got := formatComponentList(components, '^')
+		got := csvpp.FormatComponentList(components, '^')
 		want := "lat^lon"
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("formatComponentList() mismatch (-want +got):\n%s", diff)

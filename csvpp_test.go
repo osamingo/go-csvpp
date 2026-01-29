@@ -1,10 +1,12 @@
-package csvpp
+package csvpp_test
 
 import (
 	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 func TestFieldKind_String(t *testing.T) {
@@ -12,32 +14,32 @@ func TestFieldKind_String(t *testing.T) {
 
 	tests := []struct {
 		name string
-		kind FieldKind
+		kind csvpp.FieldKind
 		want string
 	}{
 		{
 			name: "success: SimpleField",
-			kind: SimpleField,
+			kind: csvpp.SimpleField,
 			want: "SimpleField",
 		},
 		{
 			name: "success: ArrayField",
-			kind: ArrayField,
+			kind: csvpp.ArrayField,
 			want: "ArrayField",
 		},
 		{
 			name: "success: StructuredField",
-			kind: StructuredField,
+			kind: csvpp.StructuredField,
 			want: "StructuredField",
 		},
 		{
 			name: "success: ArrayStructuredField",
-			kind: ArrayStructuredField,
+			kind: csvpp.ArrayStructuredField,
 			want: "ArrayStructuredField",
 		},
 		{
 			name: "success: unknown FieldKind",
-			kind: FieldKind(999),
+			kind: csvpp.FieldKind(999),
 			want: "FieldKind(999)",
 		},
 	}
@@ -59,12 +61,12 @@ func TestParseError_Error(t *testing.T) {
 
 	tests := []struct {
 		name string
-		err  *ParseError
+		err  *csvpp.ParseError
 		want string
 	}{
 		{
 			name: "success: line only",
-			err: &ParseError{
+			err: &csvpp.ParseError{
 				Line: 1,
 				Err:  errors.New("test error"),
 			},
@@ -72,7 +74,7 @@ func TestParseError_Error(t *testing.T) {
 		},
 		{
 			name: "success: line and column",
-			err: &ParseError{
+			err: &csvpp.ParseError{
 				Line:   2,
 				Column: 3,
 				Err:    errors.New("test error"),
@@ -81,7 +83,7 @@ func TestParseError_Error(t *testing.T) {
 		},
 		{
 			name: "success: line, column, and field",
-			err: &ParseError{
+			err: &csvpp.ParseError{
 				Line:   4,
 				Column: 5,
 				Field:  "name",
@@ -107,7 +109,7 @@ func TestParseError_Unwrap(t *testing.T) {
 	t.Parallel()
 
 	originalErr := errors.New("original error")
-	parseErr := &ParseError{
+	parseErr := &csvpp.ParseError{
 		Line: 1,
 		Err:  originalErr,
 	}
@@ -184,7 +186,7 @@ func TestHasFormulaPrefix(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := HasFormulaPrefix(tt.input)
+			got := csvpp.HasFormulaPrefix(tt.input)
 			if got != tt.want {
 				t.Errorf("HasFormulaPrefix(%q) = %v, want %v", tt.input, got, tt.want)
 			}

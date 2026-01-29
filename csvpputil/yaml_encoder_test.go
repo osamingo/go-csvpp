@@ -1,4 +1,4 @@
-package csvpputil
+package csvpputil_test
 
 import (
 	"bytes"
@@ -7,7 +7,9 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/osamingo/go-csvpp"
+	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
 func TestYAMLEncoder_Encode(t *testing.T) {
@@ -22,7 +24,7 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewYAMLEncoder(&buf, headers)
+		enc := csvpputil.NewYAMLEncoder(&buf, headers)
 
 		err := enc.Encode([]*csvpp.Field{
 			{Value: "Alice"},
@@ -53,7 +55,7 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewYAMLEncoder(&buf, headers)
+		enc := csvpputil.NewYAMLEncoder(&buf, headers)
 
 		records := [][]*csvpp.Field{
 			{{Value: "Alice"}, {Values: []string{"go"}}},
@@ -88,7 +90,7 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewYAMLEncoder(&buf, headers)
+		enc := csvpputil.NewYAMLEncoder(&buf, headers)
 
 		if err := enc.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
@@ -104,7 +106,7 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewYAMLEncoder(&buf, headers)
+		enc := csvpputil.NewYAMLEncoder(&buf, headers)
 
 		if err := enc.Close(); err != nil {
 			t.Fatalf("first Close() error = %v", err)
@@ -204,7 +206,7 @@ func TestMarshalYAML(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := MarshalYAML(tt.headers, tt.records)
+			got, err := csvpputil.MarshalYAML(tt.headers, tt.records)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
 				return

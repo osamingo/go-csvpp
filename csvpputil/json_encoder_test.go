@@ -1,4 +1,4 @@
-package csvpputil
+package csvpputil_test
 
 import (
 	"bytes"
@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/osamingo/go-csvpp"
+	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
 func TestJSONEncoder_Encode(t *testing.T) {
@@ -22,7 +24,7 @@ func TestJSONEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, headers)
+		enc := csvpputil.NewJSONEncoder(&buf, headers)
 
 		err := enc.Encode([]*csvpp.Field{
 			{Value: "Alice"},
@@ -53,7 +55,7 @@ func TestJSONEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, headers)
+		enc := csvpputil.NewJSONEncoder(&buf, headers)
 
 		records := [][]*csvpp.Field{
 			{{Value: "Alice"}, {Values: []string{"go"}}},
@@ -88,7 +90,7 @@ func TestJSONEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, headers)
+		enc := csvpputil.NewJSONEncoder(&buf, headers)
 
 		if err := enc.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
@@ -103,7 +105,7 @@ func TestJSONEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, headers)
+		enc := csvpputil.NewJSONEncoder(&buf, headers)
 
 		if err := enc.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
@@ -119,7 +121,7 @@ func TestJSONEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := NewJSONEncoder(&buf, headers)
+		enc := csvpputil.NewJSONEncoder(&buf, headers)
 
 		if err := enc.Close(); err != nil {
 			t.Fatalf("first Close() error = %v", err)
@@ -219,7 +221,7 @@ func TestMarshalJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := MarshalJSON(tt.headers, tt.records)
+			got, err := csvpputil.MarshalJSON(tt.headers, tt.records)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 				return

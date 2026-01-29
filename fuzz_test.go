@@ -1,8 +1,10 @@
-package csvpp
+package csvpp_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/osamingo/go-csvpp"
 )
 
 // FuzzParseColumnHeader tests that parseColumnHeader does not panic on arbitrary input.
@@ -63,7 +65,10 @@ func FuzzParseColumnHeader(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// The function should not panic regardless of input
-		_, _ = parseColumnHeader(input)
+		// Errors are expected for invalid input
+		if _, err := csvpp.ParseColumnHeader(input); err != nil {
+			return
+		}
 	})
 }
 
@@ -108,7 +113,7 @@ func FuzzReader(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// The reader should not panic regardless of input
-		r := NewReader(strings.NewReader(input))
+		r := csvpp.NewReader(strings.NewReader(input))
 
 		// Try to read headers
 		_, err := r.Headers()
@@ -117,7 +122,10 @@ func FuzzReader(f *testing.F) {
 		}
 
 		// Try to read all records
-		_, _ = r.ReadAll()
+		// Errors are expected for invalid input
+		if _, err := r.ReadAll(); err != nil {
+			return
+		}
 	})
 }
 
@@ -145,7 +153,7 @@ func FuzzSplitByRune(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string, sep rune) {
 		// Should not panic
-		result := splitByRune(input, sep)
+		result := csvpp.SplitByRune(input, sep)
 
 		// Basic invariants
 		if input == "" && len(result) != 0 {
@@ -171,6 +179,9 @@ func FuzzNestingDepth(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// Should not panic, should respect nesting limit
-		_, _ = parseColumnHeader(input)
+		// Errors are expected for invalid input
+		if _, err := csvpp.ParseColumnHeader(input); err != nil {
+			return
+		}
 	})
 }

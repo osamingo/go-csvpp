@@ -1,10 +1,12 @@
-package csvpputil
+package csvpputil_test
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/osamingo/go-csvpp"
+	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
 func TestRecordToMap(t *testing.T) {
@@ -158,7 +160,7 @@ func TestRecordToMap(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := RecordToMap(tt.headers, tt.record)
+			got := csvpputil.RecordToMap(tt.headers, tt.record)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("RecordToMap() mismatch (-want +got):\n%s", diff)
 			}
