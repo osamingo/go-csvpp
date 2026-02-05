@@ -256,6 +256,84 @@ type Record struct {
 }
 ```
 
+## JSON/YAML Conversion (csvpputil)
+
+The `csvpputil` package provides utilities for converting CSV++ data to JSON and YAML formats.
+
+### Installation
+
+```bash
+go get github.com/osamingo/go-csvpp/csvpputil
+```
+
+### Quick Conversion
+
+```go
+import "github.com/osamingo/go-csvpp/csvpputil"
+
+// Convert to JSON
+jsonData, err := csvpputil.MarshalJSON(headers, records)
+
+// Convert to YAML
+yamlData, err := csvpputil.MarshalYAML(headers, records)
+
+// Write directly to io.Writer
+err = csvpputil.WriteJSON(w, headers, records)
+err = csvpputil.WriteYAML(w, headers, records)
+```
+
+### Streaming Output
+
+For large datasets, use streaming writers:
+
+```go
+// JSON streaming
+w := csvpputil.NewJSONArrayWriter(out, headers)
+for _, record := range records {
+    if err := w.Write(record); err != nil {
+        return err
+    }
+}
+if err := w.Close(); err != nil {
+    return err
+}
+
+// YAML streaming
+w := csvpputil.NewYAMLArrayWriter(out, headers)
+for _, record := range records {
+    if err := w.Write(record); err != nil {
+        return err
+    }
+}
+if err := w.Close(); err != nil {
+    return err
+}
+```
+
+### Example Output
+
+Given CSV++ data:
+```
+name,tags[],geo(lat^lon)
+Alice,go~rust,35.6762^139.6503
+```
+
+JSON output:
+```json
+[{"name":"Alice","tags":["go","rust"],"geo":{"lat":"35.6762","lon":"139.6503"}}]
+```
+
+YAML output:
+```yaml
+- name: Alice
+  tags:
+  - go
+  - rust
+  geo:
+    lat: "35.6762"
+    lon: "139.6503"
+```
+
 ## Compatibility
 
 This package wraps `encoding/csv` and inherits:
