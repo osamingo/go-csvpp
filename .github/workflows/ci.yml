@@ -48,5 +48,5 @@ jobs:
       - name: Check gofumpt
         run: test -z "$(go tool gofumpt -l .)"
 
-      - name: Run go vet with gostyle
-        run: go vet -vettool=$(go tool -n gostyle) ./...
+      - name: Run go vet
+        run: go vet -all -vettool=$(go tool -n csvppvet) ./...
