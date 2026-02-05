@@ -12,7 +12,7 @@ import (
 	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
-func TestYAMLEncoder_Encode(t *testing.T) {
+func TestYAMLArrayWriter_Write(t *testing.T) {
 	t.Parallel()
 
 	headers := []*csvpp.ColumnHeader{
@@ -24,17 +24,17 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := csvpputil.NewYAMLEncoder(&buf, headers)
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers)
 
-		err := enc.Encode([]*csvpp.Field{
+		err := w.Write([]*csvpp.Field{
 			{Value: "Alice"},
 			{Values: []string{"go", "rust"}},
 		})
 		if err != nil {
-			t.Fatalf("Encode() error = %v", err)
+			t.Fatalf("Write() error = %v", err)
 		}
 
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
 		}
 
@@ -55,7 +55,7 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := csvpputil.NewYAMLEncoder(&buf, headers)
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers)
 
 		records := [][]*csvpp.Field{
 			{{Value: "Alice"}, {Values: []string{"go"}}},
@@ -63,12 +63,12 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		}
 
 		for _, record := range records {
-			if err := enc.Encode(record); err != nil {
-				t.Fatalf("Encode() error = %v", err)
+			if err := w.Write(record); err != nil {
+				t.Fatalf("Write() error = %v", err)
 			}
 		}
 
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
 		}
 
@@ -86,19 +86,19 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		}
 	})
 
-	t.Run("error: encode after close", func(t *testing.T) {
+	t.Run("error: write after close", func(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := csvpputil.NewYAMLEncoder(&buf, headers)
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers)
 
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
 		}
 
-		err := enc.Encode([]*csvpp.Field{{Value: "Alice"}})
+		err := w.Write([]*csvpp.Field{{Value: "Alice"}})
 		if err != io.ErrClosedPipe {
-			t.Errorf("Encode() error = %v, want %v", err, io.ErrClosedPipe)
+			t.Errorf("Write() error = %v, want %v", err, io.ErrClosedPipe)
 		}
 	})
 
@@ -106,13 +106,13 @@ func TestYAMLEncoder_Encode(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
-		enc := csvpputil.NewYAMLEncoder(&buf, headers)
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers)
 
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			t.Fatalf("first Close() error = %v", err)
 		}
 
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			t.Fatalf("second Close() error = %v", err)
 		}
 	})
@@ -222,4 +222,60 @@ func TestMarshalYAML(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWriteYAML(t *testing.T) {
+	t.Parallel()
+
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "tags", Kind: csvpp.ArrayField},
+	}
+
+	t.Run("success: write records", func(t *testing.T) {
+		t.Parallel()
+
+		var buf bytes.Buffer
+		records := [][]*csvpp.Field{
+			{{Value: "Alice"}, {Values: []string{"go"}}},
+			{{Value: "Bob"}, {Values: []string{"rust"}}},
+		}
+
+		err := csvpputil.WriteYAML(&buf, headers, records)
+		if err != nil {
+			t.Fatalf("WriteYAML() error = %v", err)
+		}
+
+		var got []map[string]any
+		if err := yaml.Unmarshal(buf.Bytes(), &got); err != nil {
+			t.Fatalf("yaml.Unmarshal() error = %v", err)
+		}
+
+		want := []map[string]any{
+			{"name": "Alice", "tags": []any{"go"}},
+			{"name": "Bob", "tags": []any{"rust"}},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("WriteYAML() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success: empty records", func(t *testing.T) {
+		t.Parallel()
+
+		var buf bytes.Buffer
+		err := csvpputil.WriteYAML(&buf, headers, nil)
+		if err != nil {
+			t.Fatalf("WriteYAML() error = %v", err)
+		}
+
+		var got []map[string]any
+		if err := yaml.Unmarshal(buf.Bytes(), &got); err != nil {
+			t.Fatalf("yaml.Unmarshal() error = %v", err)
+		}
+
+		if diff := cmp.Diff([]map[string]any{}, got); diff != "" {
+			t.Errorf("WriteYAML() mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
