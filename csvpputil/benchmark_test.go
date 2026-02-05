@@ -43,10 +43,10 @@ var (
 	}()
 )
 
-func BenchmarkRecordToMap(b *testing.B) {
+func BenchmarkFieldsToMap(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		_ = csvpputil.RecordToMap(benchHeaders, benchRecord)
+		_ = csvpputil.FieldsToMap(benchHeaders, benchRecord)
 	}
 }
 
@@ -68,59 +68,77 @@ func BenchmarkMarshalYAML(b *testing.B) {
 	}
 }
 
-func BenchmarkJSONEncoder_Encode(b *testing.B) {
+func BenchmarkJSONArrayWriter_Write(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		enc := csvpputil.NewJSONEncoder(io.Discard, benchHeaders)
+		w := csvpputil.NewJSONArrayWriter(io.Discard, benchHeaders)
 		for _, record := range benchRecords {
-			if err := enc.Encode(record); err != nil {
+			if err := w.Write(record); err != nil {
 				b.Fatal(err)
 			}
 		}
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			b.Fatal(err)
 		}
 	}
 }
 
-func BenchmarkYAMLEncoder_Encode(b *testing.B) {
+func BenchmarkYAMLArrayWriter_Write(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		enc := csvpputil.NewYAMLEncoder(io.Discard, benchHeaders)
+		w := csvpputil.NewYAMLArrayWriter(io.Discard, benchHeaders)
 		for _, record := range benchRecords {
-			if err := enc.Encode(record); err != nil {
+			if err := w.Write(record); err != nil {
 				b.Fatal(err)
 			}
 		}
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			b.Fatal(err)
 		}
 	}
 }
 
-func BenchmarkJSONEncoder_SingleRecord(b *testing.B) {
+func BenchmarkJSONArrayWriter_SingleRecord(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
 		var buf bytes.Buffer
-		enc := csvpputil.NewJSONEncoder(&buf, benchHeaders)
-		if err := enc.Encode(benchRecord); err != nil {
+		w := csvpputil.NewJSONArrayWriter(&buf, benchHeaders)
+		if err := w.Write(benchRecord); err != nil {
 			b.Fatal(err)
 		}
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
 			b.Fatal(err)
 		}
 	}
 }
 
-func BenchmarkYAMLEncoder_SingleRecord(b *testing.B) {
+func BenchmarkYAMLArrayWriter_SingleRecord(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
 		var buf bytes.Buffer
-		enc := csvpputil.NewYAMLEncoder(&buf, benchHeaders)
-		if err := enc.Encode(benchRecord); err != nil {
+		w := csvpputil.NewYAMLArrayWriter(&buf, benchHeaders)
+		if err := w.Write(benchRecord); err != nil {
 			b.Fatal(err)
 		}
-		if err := enc.Close(); err != nil {
+		if err := w.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkWriteJSON(b *testing.B) {
+	b.ReportAllocs()
+	for b.Loop() {
+		if err := csvpputil.WriteJSON(io.Discard, benchHeaders, benchRecords); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkWriteYAML(b *testing.B) {
+	b.ReportAllocs()
+	for b.Loop() {
+		if err := csvpputil.WriteYAML(io.Discard, benchHeaders, benchRecords); err != nil {
 			b.Fatal(err)
 		}
 	}

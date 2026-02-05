@@ -1,0 +1,8 @@
+- name: Tokyo
+  geo:
+    lat: "35.6762"
+    lon: "139.6503"
+- name: Osaka
+  geo:
+    lat: "34.6937"
+    lon: "135.5023"

@@ -9,26 +9,6 @@ import (
 	"github.com/osamingo/go-csvpp/csvpputil"
 )
 
-func ExampleRecordToMap() {
-	headers := []*csvpp.ColumnHeader{
-		{Name: "name", Kind: csvpp.SimpleField},
-		{Name: "tags", Kind: csvpp.ArrayField},
-	}
-
-	record := []*csvpp.Field{
-		{Value: "Alice"},
-		{Values: []string{"go", "rust"}},
-	}
-
-	m := csvpputil.RecordToMap(headers, record)
-	fmt.Printf("name: %s\n", m["name"])
-	fmt.Printf("tags: %v\n", m["tags"])
-
-	// Output:
-	// name: Alice
-	// tags: [go rust]
-}
-
 func ExampleMarshalJSON() {
 	headers := []*csvpp.ColumnHeader{
 		{Name: "name", Kind: csvpp.SimpleField},
@@ -47,7 +27,7 @@ func ExampleMarshalJSON() {
 	fmt.Println(string(data))
 
 	// Output:
-	// [{"age":"30","name":"Alice"},{"age":"25","name":"Bob"}]
+	// [{"name":"Alice","age":"30"},{"name":"Bob","age":"25"}]
 }
 
 func ExampleMarshalYAML() {
@@ -68,27 +48,27 @@ func ExampleMarshalYAML() {
 	fmt.Print(string(data))
 
 	// Output:
-	// - age: "30"
-	//   name: Alice
-	// - age: "25"
-	//   name: Bob
+	// - name: Alice
+	//   age: "30"
+	// - name: Bob
+	//   age: "25"
 }
 
-func ExampleJSONEncoder() {
+func ExampleJSONArrayWriter() {
 	headers := []*csvpp.ColumnHeader{
 		{Name: "name", Kind: csvpp.SimpleField},
 		{Name: "score", Kind: csvpp.SimpleField},
 	}
 
-	enc := csvpputil.NewJSONEncoder(os.Stdout, headers, csvpputil.WithDeterministic(true))
+	w := csvpputil.NewJSONArrayWriter(os.Stdout, headers, csvpputil.WithDeterministic(true))
 
-	if err := enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
+	if err := w.Write([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
 		log.Fatal(err)
 	}
-	if err := enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
+	if err := w.Write([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
 		log.Fatal(err)
 	}
-	if err := enc.Close(); err != nil {
+	if err := w.Close(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -96,21 +76,62 @@ func ExampleJSONEncoder() {
 	// [{"name":"Alice","score":"100"},{"name":"Bob","score":"85"}]
 }
 
-func ExampleYAMLEncoder() {
+func ExampleYAMLArrayWriter() {
 	headers := []*csvpp.ColumnHeader{
 		{Name: "name", Kind: csvpp.SimpleField},
 		{Name: "score", Kind: csvpp.SimpleField},
 	}
 
-	enc := csvpputil.NewYAMLEncoder(os.Stdout, headers)
+	w := csvpputil.NewYAMLArrayWriter(os.Stdout, headers)
 
-	if err := enc.Encode([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
+	if err := w.Write([]*csvpp.Field{{Value: "Alice"}, {Value: "100"}}); err != nil {
 		log.Fatal(err)
 	}
-	if err := enc.Encode([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
+	if err := w.Write([]*csvpp.Field{{Value: "Bob"}, {Value: "85"}}); err != nil {
 		log.Fatal(err)
 	}
-	if err := enc.Close(); err != nil {
+	if err := w.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Output:
+	// - name: Alice
+	//   score: "100"
+	// - name: Bob
+	//   score: "85"
+}
+
+func ExampleWriteJSON() {
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "score", Kind: csvpp.SimpleField},
+	}
+
+	records := [][]*csvpp.Field{
+		{{Value: "Alice"}, {Value: "100"}},
+		{{Value: "Bob"}, {Value: "85"}},
+	}
+
+	if err := csvpputil.WriteJSON(os.Stdout, headers, records, csvpputil.WithDeterministic(true)); err != nil {
+		log.Fatal(err)
+	}
+
+	// Output:
+	// [{"name":"Alice","score":"100"},{"name":"Bob","score":"85"}]
+}
+
+func ExampleWriteYAML() {
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "score", Kind: csvpp.SimpleField},
+	}
+
+	records := [][]*csvpp.Field{
+		{{Value: "Alice"}, {Value: "100"}},
+		{{Value: "Bob"}, {Value: "85"}},
+	}
+
+	if err := csvpputil.WriteYAML(os.Stdout, headers, records); err != nil {
 		log.Fatal(err)
 	}
 

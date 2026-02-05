@@ -1,0 +1,3 @@
+name,tags[],geo(lat^lon)
+Alice,go~rust,35.6762^139.6503
+Bob,java,34.6937^135.5023
