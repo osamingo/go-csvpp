@@ -102,7 +102,7 @@ func runGoldenReadTest(t *testing.T, file string) {
 	}
 
 	var tc goldenReadTest
-	if err := json.Unmarshal(data, &tc); err != nil {
+	if err = json.Unmarshal(data, &tc); err != nil {
 		t.Fatalf("failed to parse test file: %v", err)
 	}
 
@@ -155,7 +155,7 @@ func runGoldenErrorTest(t *testing.T, file string) {
 	}
 
 	var tc goldenReadTest
-	if err := json.Unmarshal(data, &tc); err != nil {
+	if err = json.Unmarshal(data, &tc); err != nil {
 		t.Fatalf("failed to parse test file: %v", err)
 	}
 
