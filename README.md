@@ -16,6 +16,8 @@ CSV++ extends traditional CSV to support **arrays** and **structured fields** wi
 - Struct mapping with `csvpp` tags (Marshal/Unmarshal)
 - Configurable delimiters
 - Security-conscious design (nesting depth limits)
+- **[csvpputil](./csvpputil/)** - JSON/YAML conversion utilities
+- **[csvpp CLI](./cmd/csvpp/)** - Command-line tool for viewing and converting CSV++ files
 
 ## Requirements
 
@@ -258,81 +260,30 @@ type Record struct {
 
 ## JSON/YAML Conversion (csvpputil)
 
-The `csvpputil` package provides utilities for converting CSV++ data to JSON and YAML formats.
+Utility package for converting CSV++ data to JSON and YAML formats with streaming support.
 
-### Installation
+For details, see [csvpputil/README.md](./csvpputil/README.md).
+
+## CLI Tool (csvpp)
+
+A command-line tool for viewing, converting, and validating CSV++ files.
 
 ```bash
-go get github.com/osamingo/go-csvpp/csvpputil
+# Install
+go install github.com/osamingo/go-csvpp/cmd/csvpp@latest
+
+# Validate
+csvpp validate input.csvpp
+
+# Convert to JSON/YAML
+csvpp convert -i input.csvpp -o output.json
+csvpp convert -i input.csvpp -o output.yaml
+
+# Interactive TUI view
+csvpp view input.csvpp
 ```
 
-### Quick Conversion
-
-```go
-import "github.com/osamingo/go-csvpp/csvpputil"
-
-// Convert to JSON
-jsonData, err := csvpputil.MarshalJSON(headers, records)
-
-// Convert to YAML
-yamlData, err := csvpputil.MarshalYAML(headers, records)
-
-// Write directly to io.Writer
-err = csvpputil.WriteJSON(w, headers, records)
-err = csvpputil.WriteYAML(w, headers, records)
-```
-
-### Streaming Output
-
-For large datasets, use streaming writers:
-
-```go
-// JSON streaming
-w := csvpputil.NewJSONArrayWriter(out, headers)
-for _, record := range records {
-    if err := w.Write(record); err != nil {
-        return err
-    }
-}
-if err := w.Close(); err != nil {
-    return err
-}
-
-// YAML streaming
-w := csvpputil.NewYAMLArrayWriter(out, headers)
-for _, record := range records {
-    if err := w.Write(record); err != nil {
-        return err
-    }
-}
-if err := w.Close(); err != nil {
-    return err
-}
-```
-
-### Example Output
-
-Given CSV++ data:
-```
-name,tags[],geo(lat^lon)
-Alice,go~rust,35.6762^139.6503
-```
-
-JSON output:
-```json
-[{"name":"Alice","tags":["go","rust"],"geo":{"lat":"35.6762","lon":"139.6503"}}]
-```
-
-YAML output:
-```yaml
-- name: Alice
-  tags:
-  - go
-  - rust
-  geo:
-    lat: "35.6762"
-    lon: "139.6503"
-```
+For more details, see [cmd/csvpp/README.md](./cmd/csvpp/README.md).
 
 ## Compatibility
 
