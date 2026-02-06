@@ -118,6 +118,77 @@ func TestYAMLArrayWriter_Write(t *testing.T) {
 	})
 }
 
+func TestYAMLArrayWriter_WriteWithCapacity(t *testing.T) {
+	t.Parallel()
+
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "tags", Kind: csvpp.ArrayField},
+	}
+
+	t.Run("success: writer with capacity hint", func(t *testing.T) {
+		t.Parallel()
+
+		var buf bytes.Buffer
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers, csvpputil.WithYAMLCapacity(2))
+
+		records := [][]*csvpp.Field{
+			{{Value: "Alice"}, {Values: []string{"go"}}},
+			{{Value: "Bob"}, {Values: []string{"rust", "python"}}},
+		}
+
+		for _, record := range records {
+			if err := w.Write(record); err != nil {
+				t.Fatalf("Write() error = %v", err)
+			}
+		}
+
+		if err := w.Close(); err != nil {
+			t.Fatalf("Close() error = %v", err)
+		}
+
+		var got []map[string]any
+		if err := yaml.Unmarshal(buf.Bytes(), &got); err != nil {
+			t.Fatalf("yaml.Unmarshal() error = %v", err)
+		}
+
+		want := []map[string]any{
+			{"name": "Alice", "tags": []any{"go"}},
+			{"name": "Bob", "tags": []any{"rust", "python"}},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("output mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success: zero capacity is safe", func(t *testing.T) {
+		t.Parallel()
+
+		var buf bytes.Buffer
+		w := csvpputil.NewYAMLArrayWriter(&buf, headers, csvpputil.WithYAMLCapacity(0))
+
+		if err := w.Write([]*csvpp.Field{{Value: "Alice"}, {Values: []string{"go"}}}); err != nil {
+			t.Fatalf("Write() error = %v", err)
+		}
+
+		if err := w.Close(); err != nil {
+			t.Fatalf("Close() error = %v", err)
+		}
+
+		var got []map[string]any
+		if err := yaml.Unmarshal(buf.Bytes(), &got); err != nil {
+			t.Fatalf("yaml.Unmarshal() error = %v", err)
+		}
+
+		want := []map[string]any{
+			{"name": "Alice", "tags": []any{"go"}},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("output mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
 func TestMarshalYAML(t *testing.T) {
 	t.Parallel()
 
