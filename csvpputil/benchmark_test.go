@@ -98,6 +98,21 @@ func BenchmarkYAMLArrayWriter_Write(b *testing.B) {
 	}
 }
 
+func BenchmarkYAMLArrayWriter_WriteWithCapacity(b *testing.B) {
+	b.ReportAllocs()
+	for b.Loop() {
+		w := csvpputil.NewYAMLArrayWriter(io.Discard, benchHeaders, csvpputil.WithYAMLCapacity(len(benchRecords)))
+		for _, record := range benchRecords {
+			if err := w.Write(record); err != nil {
+				b.Fatal(err)
+			}
+		}
+		if err := w.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkJSONArrayWriter_SingleRecord(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {

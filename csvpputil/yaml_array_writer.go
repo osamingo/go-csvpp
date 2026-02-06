@@ -8,6 +8,19 @@ import (
 	"github.com/osamingo/go-csvpp"
 )
 
+// YAMLArrayWriterOption is a functional option for YAMLArrayWriter.
+type YAMLArrayWriterOption func(*YAMLArrayWriter)
+
+// WithYAMLCapacity pre-allocates the internal buffer for the expected number of records.
+// This reduces memory allocations when the approximate record count is known in advance.
+func WithYAMLCapacity(n int) YAMLArrayWriterOption {
+	return func(w *YAMLArrayWriter) {
+		if n > 0 {
+			w.records = make([]yaml.MapSlice, 0, n)
+		}
+	}
+}
+
 // YAMLArrayWriter writes CSV++ records as a YAML array.
 // Due to YAML's structure (go-yaml doesn't support streaming array elements),
 // records are buffered until Close.
@@ -19,11 +32,15 @@ type YAMLArrayWriter struct {
 }
 
 // NewYAMLArrayWriter creates a new YAMLArrayWriter that writes to w.
-func NewYAMLArrayWriter(w io.Writer, headers []*csvpp.ColumnHeader) *YAMLArrayWriter {
-	return &YAMLArrayWriter{
+func NewYAMLArrayWriter(w io.Writer, headers []*csvpp.ColumnHeader, opts ...YAMLArrayWriterOption) *YAMLArrayWriter {
+	writer := &YAMLArrayWriter{
 		w:       w,
 		headers: headers,
 	}
+	for _, opt := range opts {
+		opt(writer)
+	}
+	return writer
 }
 
 // Write adds a single record to the buffer.
@@ -57,31 +74,29 @@ func (w *YAMLArrayWriter) Close() error {
 // The output is a YAML array where each element is a record.
 func MarshalYAML(headers []*csvpp.ColumnHeader, records [][]*csvpp.Field) ([]byte, error) {
 	var buf bytes.Buffer
-	w := NewYAMLArrayWriter(&buf, headers)
-
-	for _, record := range records {
-		if err := w.Write(record); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := w.Close(); err != nil {
+	if err := encodeYAMLRecords(&buf, headers, records); err != nil {
 		return nil, err
 	}
-
 	return buf.Bytes(), nil
 }
 
 // WriteYAML writes CSV++ records as a YAML array to the provided writer.
 // The output is a YAML array where each element is a record.
 func WriteYAML(w io.Writer, headers []*csvpp.ColumnHeader, records [][]*csvpp.Field) error {
-	writer := NewYAMLArrayWriter(w, headers)
+	return encodeYAMLRecords(w, headers, records)
+}
 
-	for _, record := range records {
-		if err := writer.Write(record); err != nil {
-			return err
-		}
+// encodeYAMLRecords builds the complete MapSlice array with exact allocation
+// and encodes it in one shot. This avoids the overhead of the YAMLArrayWriter's
+// per-record append growth.
+func encodeYAMLRecords(w io.Writer, headers []*csvpp.ColumnHeader, records [][]*csvpp.Field) error {
+	ms := make([]yaml.MapSlice, len(records))
+	for i, record := range records {
+		ms[i] = fieldsToMapSlice(headers, record)
 	}
-
-	return writer.Close()
+	enc := yaml.NewEncoder(w)
+	if err := enc.Encode(ms); err != nil {
+		return err
+	}
+	return enc.Close()
 }
