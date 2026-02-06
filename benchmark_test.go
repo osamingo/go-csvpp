@@ -332,6 +332,40 @@ func BenchmarkMarshal(b *testing.B) {
 	}
 }
 
+func BenchmarkUnmarshal_100Records(b *testing.B) {
+	var sb strings.Builder
+	sb.WriteString("name,age,phone[]\n")
+	for range 100 {
+		sb.WriteString("Alice,30,555-1234~555-5678\n")
+	}
+	inputBytes := []byte(sb.String())
+
+	for b.Loop() {
+		var people []BenchmarkPerson
+		if err := csvpp.Unmarshal(bytes.NewReader(inputBytes), &people); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarshal_100Records(b *testing.B) {
+	people := make([]BenchmarkPerson, 100)
+	for i := range people {
+		people[i] = BenchmarkPerson{
+			Name:   "Alice",
+			Age:    30,
+			Phones: []string{"555-1234", "555-5678"},
+		}
+	}
+
+	for b.Loop() {
+		var buf bytes.Buffer
+		if err := csvpp.Marshal(&buf, people); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 // splitByRune Benchmark
 
 func BenchmarkSplitByRune(b *testing.B) {

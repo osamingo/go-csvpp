@@ -95,23 +95,23 @@ func MarshalWriter(w *Writer, src any) error {
 		return fmt.Errorf("csvpp: slice element must be a struct")
 	}
 
-	// Build headers
-	headers := buildHeaders(elemType)
-	w.SetHeaders(headers)
+	// Get cached type info
+	ti := cachedTypeInfo(elemType)
+	w.SetHeaders(ti.headers)
 
 	// Write headers
 	if err := w.WriteHeader(); err != nil {
 		return err
 	}
 
-	// Encode each element
+	// Encode each element using cached encode field mappings
 	for i := 0; i < srcVal.Len(); i++ {
 		elemVal := srcVal.Index(i)
 		if elemVal.Kind() == reflect.Pointer {
 			elemVal = elemVal.Elem()
 		}
 
-		record := encodeRecord(elemVal, headers)
+		record := encodeRecord(elemVal, ti.headers, ti.encodeFields)
 		if err := w.Write(record); err != nil {
 			return err
 		}
@@ -130,23 +130,14 @@ type fieldMapping struct {
 
 // buildFieldMap creates a mapping between struct fields and headers.
 func buildFieldMap(t reflect.Type, headers []*ColumnHeader) []fieldMapping {
+	ti := cachedTypeInfo(t)
 	var mappings []fieldMapping
 
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		tag := field.Tag.Get("csvpp")
-		if tag == "" || tag == "-" {
-			continue
-		}
-
-		// Extract column name from tag (first part is the column name)
-		tagName := extractTagName(tag)
-
-		// Find corresponding column in headers
+	for _, tn := range ti.tagNames {
 		for j, h := range headers {
-			if h.Name == tagName {
+			if h.Name == tn.tagName {
 				mappings = append(mappings, fieldMapping{
-					fieldIndex:  i,
+					fieldIndex:  tn.structIndex,
 					header:      h,
 					columnIndex: j,
 				})
@@ -168,31 +159,6 @@ func extractTagName(tag string) string {
 		}
 	}
 	return tag
-}
-
-// buildHeaders builds headers from a struct.
-func buildHeaders(t reflect.Type) []*ColumnHeader {
-	var headers []*ColumnHeader
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		tag := field.Tag.Get("csvpp")
-		if tag == "" || tag == "-" {
-			continue
-		}
-
-		h, err := parseColumnHeader(tag)
-		if err != nil {
-			// Treat as simple field if error
-			h = &ColumnHeader{
-				Name: tag,
-				Kind: SimpleField,
-			}
-		}
-		headers = append(headers, h)
-	}
-
-	return headers
 }
 
 // decodeRecord decodes a record into a struct.
@@ -355,25 +321,17 @@ func decodeStructComponents(components []*Field, dst reflect.Value, headers []*C
 }
 
 // encodeRecord encodes a struct to a record.
-func encodeRecord(src reflect.Value, headers []*ColumnHeader) []*Field {
+func encodeRecord(src reflect.Value, headers []*ColumnHeader, encodeFields []encodeFieldInfo) []*Field {
 	fields := make([]*Field, 0, len(headers))
 
-	fieldIdx := 0
-	for i := 0; i < src.NumField(); i++ {
-		structField := src.Type().Field(i)
-		tag := structField.Tag.Get("csvpp")
-		if tag == "" || tag == "-" {
-			continue
-		}
-
-		if fieldIdx >= len(headers) {
+	for _, ef := range encodeFields {
+		if ef.headerIndex >= len(headers) {
 			break
 		}
 
-		field := src.Field(i)
-		f := encodeField(field, headers[fieldIdx])
+		field := src.Field(ef.structIndex)
+		f := encodeField(field, headers[ef.headerIndex])
 		fields = append(fields, f)
-		fieldIdx++
 	}
 
 	return fields

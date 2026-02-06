@@ -13,4 +13,5 @@ var (
 	FormatColumnHeader            = formatColumnHeader
 	FormatComponentList           = formatComponentList
 	ExtractTagName                = extractTagName
+	CachedTypeInfo                = cachedTypeInfo
 )
