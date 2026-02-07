@@ -22,14 +22,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Install X11 dependencies
-        run: sudo apt-get update && sudo apt-get install -y libx11-dev
-
-      - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - name: Setup Go environment
+        uses: ./.github/actions/setup
         with:
           go-version: ${{ matrix.go-version }}
-          cache: true
 
       - name: Run tests
         run: go test -race -v ./...
@@ -42,14 +38,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Install X11 dependencies
-        run: sudo apt-get update && sudo apt-get install -y libx11-dev
-
-      - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
-        with:
-          go-version: stable
-          cache: true
+      - name: Setup Go environment
+        uses: ./.github/actions/setup
 
       - name: Check gofumpt
         run: test -z "$(go tool gofumpt -l .)"
