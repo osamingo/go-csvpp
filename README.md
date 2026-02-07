@@ -242,29 +242,17 @@ writer.Flush()              // Flush buffer
 ### Marshal/Unmarshal
 
 ```go
-// Unmarshal CSV++ data into structs
+// Unmarshal CSV++ data into structs (r is io.Reader)
 var people []Person
-err := csvpp.Unmarshal(reader, &people)
+err := csvpp.Unmarshal(r, &people)
 
-// Marshal structs to CSV++ data
-err := csvpp.Marshal(writer, people)
+// Marshal structs to CSV++ data (w is io.Writer)
+err := csvpp.Marshal(w, people)
 ```
 
 ### Struct Tags
 
-Use `csvpp` struct tags to map fields:
-
-```go
-type Record struct {
-    Name     string   `csvpp:"name"`           // Simple field
-    Tags     []string `csvpp:"tags[]"`         // Array field
-    Location struct {                          // Structured field
-        Lat string
-        Lon string
-    } `csvpp:"geo(lat^lon)"`
-    Addresses []Address `csvpp:"addr[](street^city)"` // Array structured
-}
-```
+See [Struct Mapping](#struct-mapping) above for tag syntax and usage.
 
 ## JSON/YAML Conversion (csvpputil)
 
