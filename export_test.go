@@ -15,3 +15,8 @@ var (
 	ExtractTagName                = extractTagName
 	CachedTypeInfo                = cachedTypeInfo
 )
+
+// ReaderLine returns the current line number of the reader for testing.
+func ReaderLine(r *Reader) int {
+	return r.line
+}

@@ -576,6 +576,23 @@ func TestReader_ComponentsMoreThanHeaders(t *testing.T) {
 	}
 }
 
+func TestReader_ReadAll_LineTracking(t *testing.T) {
+	t.Parallel()
+
+	input := "name,age\nAlice,30\nBob,25\nCharlie,35\n"
+	r := csvpp.NewReader(strings.NewReader(input))
+
+	_, err := r.ReadAll()
+	if err != nil {
+		t.Fatalf("Reader.ReadAll() error = %v", err)
+	}
+
+	// After reading header (line 1) + 3 data records, line should be 4.
+	if got := csvpp.ReaderLine(r); got != 4 {
+		t.Errorf("Reader.ReadAll() line = %d, want 4", got)
+	}
+}
+
 func TestReader_ArrayStructuredInComponents(t *testing.T) {
 	t.Parallel()
 
