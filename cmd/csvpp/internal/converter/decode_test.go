@@ -21,7 +21,7 @@ func TestFromJSON(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:  "success: simple fields",
+			name:  "success: simple fields with preserved order",
 			input: `[{"name":"Alice","age":"30"},{"name":"Bob","age":"25"}]`,
 			wantHeaders: []*csvpp.ColumnHeader{
 				{Name: "name", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
@@ -31,10 +31,9 @@ func TestFromJSON(t *testing.T) {
 				{{Value: "Alice"}, {Value: "30"}},
 				{{Value: "Bob"}, {Value: "25"}},
 			},
-			wantErr: false,
 		},
 		{
-			name:  "success: array field",
+			name:  "success: array field with preserved order",
 			input: `[{"name":"Alice","phones":["111","222"]},{"name":"Bob","phones":["333"]}]`,
 			wantHeaders: []*csvpp.ColumnHeader{
 				{Name: "name", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
@@ -44,14 +43,12 @@ func TestFromJSON(t *testing.T) {
 				{{Value: "Alice"}, {Values: []string{"111", "222"}}},
 				{{Value: "Bob"}, {Values: []string{"333"}}},
 			},
-			wantErr: false,
 		},
 		{
 			name:        "success: empty array",
 			input:       `[]`,
 			wantHeaders: nil,
 			wantRecords: nil,
-			wantErr:     false,
 		},
 		{
 			name:    "error: invalid json",
@@ -78,14 +75,12 @@ func TestFromJSON(t *testing.T) {
 				return
 			}
 
-			// Compare headers (ignore order since JSON doesn't preserve it)
-			if len(headers) != len(tt.wantHeaders) {
-				t.Errorf("headers count mismatch: want %d, got %d", len(tt.wantHeaders), len(headers))
+			if diff := cmp.Diff(tt.wantHeaders, headers); diff != "" {
+				t.Errorf("headers mismatch (-want +got):\n%s", diff)
 			}
 
-			// Compare records count
-			if len(records) != len(tt.wantRecords) {
-				t.Errorf("records count mismatch: want %d, got %d", len(tt.wantRecords), len(records))
+			if diff := cmp.Diff(tt.wantRecords, records); diff != "" {
+				t.Errorf("records mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -102,7 +97,7 @@ func TestFromYAML(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "success: simple fields",
+			name: "success: simple fields with preserved order",
 			input: `- name: Alice
   age: "30"
 - name: Bob
@@ -116,14 +111,12 @@ func TestFromYAML(t *testing.T) {
 				{{Value: "Alice"}, {Value: "30"}},
 				{{Value: "Bob"}, {Value: "25"}},
 			},
-			wantErr: false,
 		},
 		{
 			name:        "success: empty array",
 			input:       `[]`,
 			wantHeaders: nil,
 			wantRecords: nil,
-			wantErr:     false,
 		},
 		{
 			name:    "error: invalid yaml",
@@ -150,32 +143,12 @@ func TestFromYAML(t *testing.T) {
 				return
 			}
 
-			// Compare headers count
-			if len(headers) != len(tt.wantHeaders) {
-				t.Errorf("headers count mismatch: want %d, got %d", len(tt.wantHeaders), len(headers))
+			if diff := cmp.Diff(tt.wantHeaders, headers); diff != "" {
+				t.Errorf("headers mismatch (-want +got):\n%s", diff)
 			}
 
-			// Compare headers by name (order not guaranteed due to map iteration)
-			if len(tt.wantHeaders) > 0 {
-				headerMap := make(map[string]*csvpp.ColumnHeader)
-				for _, h := range headers {
-					headerMap[h.Name] = h
-				}
-				for _, want := range tt.wantHeaders {
-					got, ok := headerMap[want.Name]
-					if !ok {
-						t.Errorf("header %q not found", want.Name)
-						continue
-					}
-					if got.Kind != want.Kind {
-						t.Errorf("header %q kind mismatch: want %v, got %v", want.Name, want.Kind, got.Kind)
-					}
-				}
-			}
-
-			// Compare records count
-			if len(records) != len(tt.wantRecords) {
-				t.Errorf("records count mismatch: want %d, got %d", len(tt.wantRecords), len(records))
+			if diff := cmp.Diff(tt.wantRecords, records); diff != "" {
+				t.Errorf("records mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -191,29 +164,30 @@ func TestFromJSONStructuredField(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Find geo header
-	var geoHeader *csvpp.ColumnHeader
-	for _, h := range headers {
-		if h.Name == "geo" {
-			geoHeader = h
-			break
-		}
+	wantHeaders := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+		{
+			Name: "geo", Kind: csvpp.StructuredField, ArrayDelimiter: '~', ComponentDelimiter: '^',
+			Components: []*csvpp.ColumnHeader{
+				{Name: "lat", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+				{Name: "lon", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+			},
+		},
 	}
 
-	if geoHeader == nil {
-		t.Fatal("geo header not found")
+	if diff := cmp.Diff(wantHeaders, headers); diff != "" {
+		t.Errorf("headers mismatch (-want +got):\n%s", diff)
 	}
 
-	if geoHeader.Kind != csvpp.StructuredField {
-		t.Errorf("geo kind mismatch: want StructuredField, got %v", geoHeader.Kind)
+	wantRecords := [][]*csvpp.Field{
+		{
+			{Value: "Alice"},
+			{Components: []*csvpp.Field{{Value: "34.05"}, {Value: "-118.24"}}},
+		},
 	}
 
-	if len(geoHeader.Components) != 2 {
-		t.Errorf("geo components count mismatch: want 2, got %d", len(geoHeader.Components))
-	}
-
-	if len(records) != 1 {
-		t.Errorf("records count mismatch: want 1, got %d", len(records))
+	if diff := cmp.Diff(wantRecords, records); diff != "" {
+		t.Errorf("records mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -227,29 +201,33 @@ func TestFromJSONArrayStructuredField(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Find addresses header
-	var addrHeader *csvpp.ColumnHeader
-	for _, h := range headers {
-		if h.Name == "addresses" {
-			addrHeader = h
-			break
-		}
+	wantHeaders := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+		{
+			Name: "addresses", Kind: csvpp.ArrayStructuredField, ArrayDelimiter: '~', ComponentDelimiter: '^',
+			Components: []*csvpp.ColumnHeader{
+				{Name: "street", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+				{Name: "city", Kind: csvpp.SimpleField, ArrayDelimiter: '~', ComponentDelimiter: '^'},
+			},
+		},
 	}
 
-	if addrHeader == nil {
-		t.Fatal("addresses header not found")
+	if diff := cmp.Diff(wantHeaders, headers); diff != "" {
+		t.Errorf("headers mismatch (-want +got):\n%s", diff)
 	}
 
-	if addrHeader.Kind != csvpp.ArrayStructuredField {
-		t.Errorf("addresses kind mismatch: want ArrayStructuredField, got %v", addrHeader.Kind)
+	wantRecords := [][]*csvpp.Field{
+		{
+			{Value: "Alice"},
+			{Components: []*csvpp.Field{
+				{Components: []*csvpp.Field{{Value: "123 Main"}, {Value: "LA"}}},
+				{Components: []*csvpp.Field{{Value: "456 Oak"}, {Value: "NY"}}},
+			}},
+		},
 	}
 
-	if len(addrHeader.Components) != 2 {
-		t.Errorf("addresses components count mismatch: want 2, got %d", len(addrHeader.Components))
-	}
-
-	if len(records) != 1 {
-		t.Errorf("records count mismatch: want 1, got %d", len(records))
+	if diff := cmp.Diff(wantRecords, records); diff != "" {
+		t.Errorf("records mismatch (-want +got):\n%s", diff)
 	}
 }
 
