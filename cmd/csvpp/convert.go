@@ -94,13 +94,10 @@ func runConvert(cmd *cobra.Command, _ []string) (retErr error) {
 
 	// Infer input format from output format for stdin
 	if inputFormat == "" && inputFile == "" {
-		// If output is CSVPP, input must be JSON or YAML (default to JSON)
-		// Otherwise, input is CSVPP
 		if outFormat == FormatCSVPP {
-			inputFormat = FormatJSON // Default to JSON when converting to CSVPP from stdin
-		} else {
-			inputFormat = FormatCSVPP
+			return fmt.Errorf("--from flag is required when reading from stdin and converting to csvpp (specify json or yaml)")
 		}
+		inputFormat = FormatCSVPP
 	}
 
 	// Open input
