@@ -42,7 +42,9 @@ if err := w.Close(); err != nil {
 #### YAMLArrayWriter
 
 ```go
-w := csvpputil.NewYAMLArrayWriter(os.Stdout, headers)
+w := csvpputil.NewYAMLArrayWriter(os.Stdout, headers,
+    csvpputil.WithYAMLCapacity(1000), // optional: pre-allocate buffer
+)
 
 for _, record := range records {
     if err := w.Write(record); err != nil {
@@ -54,6 +56,9 @@ if err := w.Close(); err != nil {
     return err
 }
 ```
+
+**Options:**
+- `WithYAMLCapacity(n)` - Pre-allocates the internal buffer for `n` records, reducing memory allocations when the approximate record count is known.
 
 **Note:** YAML output is buffered until `Close()` due to go-yaml library constraints.
 
