@@ -4,6 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/table"
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/osamingo/go-csvpp"
 	"github.com/osamingo/go-csvpp/cmd/csvpp/internal/tui"
 )
@@ -125,5 +128,175 @@ func TestNewModel(t *testing.T) {
 	view := model.View()
 	if view == "" {
 		t.Error("expected non-empty view")
+	}
+}
+
+func TestParseFilterQuery(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   string
+		want tui.FilterQuery
+	}{
+		{
+			name: "success: empty string",
+			in:   "",
+			want: tui.FilterQuery{},
+		},
+		{
+			name: "success: whitespace only",
+			in:   "   ",
+			want: tui.FilterQuery{},
+		},
+		{
+			name: "success: simple text searches all columns",
+			in:   "alice",
+			want: tui.FilterQuery{Column: "", Value: "alice"},
+		},
+		{
+			name: "success: preserves lowercase conversion",
+			in:   "ALICE",
+			want: tui.FilterQuery{Column: "", Value: "alice"},
+		},
+		{
+			name: "success: column specific search",
+			in:   "name:alice",
+			want: tui.FilterQuery{Column: "name", Value: "alice"},
+		},
+		{
+			name: "success: column specific with spaces trimmed",
+			in:   " name : alice ",
+			want: tui.FilterQuery{Column: "name", Value: "alice"},
+		},
+		{
+			name: "success: column name is lowercased",
+			in:   "Name:alice",
+			want: tui.FilterQuery{Column: "name", Value: "alice"},
+		},
+		{
+			name: "success: empty column part searches all columns",
+			in:   ":alice",
+			want: tui.FilterQuery{Column: "", Value: "alice"},
+		},
+		{
+			name: "success: column with empty value",
+			in:   "name:",
+			want: tui.FilterQuery{Column: "name", Value: ""},
+		},
+		{
+			name: "success: value with colon inside",
+			in:   "name:a:b",
+			want: tui.FilterQuery{Column: "name", Value: "a:b"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tui.ParseFilterQuery(tt.in)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("ParseFilterQuery(%q) mismatch (-want +got):\n%s", tt.in, diff)
+			}
+		})
+	}
+}
+
+func TestMatchesFilter(t *testing.T) {
+	t.Parallel()
+
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
+		{Name: "city", Kind: csvpp.SimpleField},
+	}
+
+	// row[0] = selection marker, row[1..] = data columns
+	row := table.Row{" ", "Alice", "30", "Tokyo"}
+
+	tests := []struct {
+		name  string
+		query tui.FilterQuery
+		row   table.Row
+		want  bool
+	}{
+		{
+			name:  "success: empty query matches all",
+			query: tui.FilterQuery{Value: ""},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "success: all columns match by name",
+			query: tui.FilterQuery{Value: "alice"},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "success: all columns match by city",
+			query: tui.FilterQuery{Value: "tokyo"},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "success: case insensitive match on row value",
+			query: tui.FilterQuery{Value: "alice"},
+			row:   table.Row{" ", "ALICE", "30", "Tokyo"},
+			want:  true,
+		},
+		{
+			name:  "success: partial match",
+			query: tui.FilterQuery{Value: "ali"},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "error: no match in any column",
+			query: tui.FilterQuery{Value: "xyz"},
+			row:   row,
+			want:  false,
+		},
+		{
+			name:  "success: column specific match",
+			query: tui.FilterQuery{Column: "name", Value: "alice"},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "error: column specific no match",
+			query: tui.FilterQuery{Column: "name", Value: "tokyo"},
+			row:   row,
+			want:  false,
+		},
+		{
+			name:  "error: nonexistent column",
+			query: tui.FilterQuery{Column: "email", Value: "alice"},
+			row:   row,
+			want:  false,
+		},
+		{
+			name:  "success: column specific match by age",
+			query: tui.FilterQuery{Column: "age", Value: "30"},
+			row:   row,
+			want:  true,
+		},
+		{
+			name:  "error: selection marker not searched",
+			query: tui.FilterQuery{Value: "✓"},
+			row:   table.Row{"✓", "Alice", "30", "Tokyo"},
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tui.MatchesFilter(tt.query, headers, tt.row)
+			if got != tt.want {
+				t.Errorf("MatchesFilter() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
