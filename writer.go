@@ -162,6 +162,9 @@ func formatComponentList(components []*ColumnHeader, delim rune) string {
 
 // formatField converts a Field to a string.
 func (w *Writer) formatField(header *ColumnHeader, field *Field) string {
+	if field == nil {
+		return ""
+	}
 	if header == nil {
 		return field.Value
 	}
