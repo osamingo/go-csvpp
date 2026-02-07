@@ -506,6 +506,35 @@ func TestWriter_NoHeaderForRecord(t *testing.T) {
 	}
 }
 
+func TestWriter_Write_NilField(t *testing.T) {
+	t.Parallel()
+
+	headers := []*csvpp.ColumnHeader{
+		{Name: "name", Kind: csvpp.SimpleField},
+		{Name: "age", Kind: csvpp.SimpleField},
+	}
+	record := []*csvpp.Field{
+		{Value: "Alice"},
+		nil, // nil field should not panic
+	}
+
+	var buf bytes.Buffer
+	w := csvpp.NewWriter(&buf)
+	w.SetHeaders(headers)
+
+	err := w.Write(record)
+	if err != nil {
+		t.Fatalf("Writer.Write() error = %v", err)
+	}
+
+	w.Flush()
+	want := "Alice,\n"
+	got := buf.String()
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("Writer.Write() mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestFormatComponentList(t *testing.T) {
 	t.Parallel()
 

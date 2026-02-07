@@ -85,6 +85,7 @@ func (r *Reader) ReadAll() ([][]*Field, error) {
 
 	result := make([][]*Field, 0, len(records))
 	for _, record := range records {
+		r.line++
 		fields, err := r.parseRecord(record)
 		if err != nil {
 			return nil, err

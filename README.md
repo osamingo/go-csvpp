@@ -21,12 +21,20 @@ CSV++ extends traditional CSV to support **arrays** and **structured fields** wi
 
 ## Requirements
 
-- Go 1.24 or later
+- Go 1.25 or later
+- `GOEXPERIMENT=jsonv2` environment variable (required by `csvpputil` package, which uses `encoding/json/jsontext`)
 
 ## Installation
 
 ```bash
 go get github.com/osamingo/go-csvpp
+```
+
+When building or testing packages that depend on `csvpputil`, set the experiment flag:
+
+```bash
+GOEXPERIMENT=jsonv2 go build ./...
+GOEXPERIMENT=jsonv2 go test ./...
 ```
 
 ## Quick Start
@@ -234,29 +242,17 @@ writer.Flush()              // Flush buffer
 ### Marshal/Unmarshal
 
 ```go
-// Unmarshal CSV++ data into structs
+// Unmarshal CSV++ data into structs (r is io.Reader)
 var people []Person
-err := csvpp.Unmarshal(reader, &people)
+err := csvpp.Unmarshal(r, &people)
 
-// Marshal structs to CSV++ data
-err := csvpp.Marshal(writer, people)
+// Marshal structs to CSV++ data (w is io.Writer)
+err := csvpp.Marshal(w, people)
 ```
 
 ### Struct Tags
 
-Use `csvpp` struct tags to map fields:
-
-```go
-type Record struct {
-    Name     string   `csvpp:"name"`           // Simple field
-    Tags     []string `csvpp:"tags[]"`         // Array field
-    Location struct {                          // Structured field
-        Lat string
-        Lon string
-    } `csvpp:"geo(lat^lon)"`
-    Addresses []Address `csvpp:"addr[](street^city)"` // Array structured
-}
-```
+See [Struct Mapping](#struct-mapping) above for tag syntax and usage.
 
 ## JSON/YAML Conversion (csvpputil)
 
