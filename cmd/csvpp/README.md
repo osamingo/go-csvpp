@@ -5,14 +5,16 @@ A command-line tool for working with CSV++ files.
 ## Installation
 
 ```bash
-go install github.com/osamingo/go-csvpp/cmd/csvpp@latest
+GOEXPERIMENT=jsonv2 go install github.com/osamingo/go-csvpp/cmd/csvpp@latest
 ```
 
 Or build from source:
 
 ```bash
-go build -o csvpp ./cmd/csvpp
+GOEXPERIMENT=jsonv2 go build -o csvpp ./cmd/csvpp
 ```
+
+> **Note:** `GOEXPERIMENT=jsonv2` is required because this tool depends on `encoding/json/jsontext` (Go 1.25+).
 
 ## Commands
 
@@ -82,8 +84,14 @@ cat input.csvpp | csvpp view
 | `↑` / `↓` | Navigate rows |
 | `Space` | Toggle row selection |
 | `y` / `c` | Copy header + selected rows to clipboard (CSV++ format) |
-| `Esc` | Clear selection |
+| `/` | Open filter input |
+| `Enter` | Apply filter (in filter mode) |
+| `Esc` | Cancel filter / Clear active filter / Clear selection |
 | `q` / `Ctrl+C` | Quit |
+
+**Filter syntax:**
+- Type text to search all columns (e.g., `Alice`)
+- Use `column:value` to search a specific column (e.g., `name:Alice`)
 
 **Note:** When stdin is not a TTY (e.g., in a pipe), a plain text table is displayed instead of the interactive TUI.
 
