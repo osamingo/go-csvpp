@@ -124,13 +124,13 @@ func parseArrayDelimiter(s string) (delim rune, rest string, err error) {
 	s = s[1:]
 
 	// Find "]"
-	idx := strings.Index(s, "]")
-	if idx == -1 {
+	before, after, ok := strings.Cut(s, "]")
+	if !ok {
 		return 0, "", fmt.Errorf("%w: missing closing bracket ']'", ErrInvalidHeader)
 	}
 
-	raw := s[:idx]
-	rest = s[idx+1:]
+	raw := before
+	rest = after
 
 	if raw == "" {
 		// Use default delimiter

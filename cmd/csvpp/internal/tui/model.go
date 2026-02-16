@@ -28,9 +28,9 @@ func parseFilterQuery(s string) filterQuery {
 		return filterQuery{}
 	}
 
-	if idx := strings.Index(s, ":"); idx >= 0 {
-		col := strings.TrimSpace(s[:idx])
-		val := strings.TrimSpace(s[idx+1:])
+	if before, after, ok := strings.Cut(s, ":"); ok {
+		col := strings.TrimSpace(before)
+		val := strings.TrimSpace(after)
 		if col != "" {
 			return filterQuery{
 				column: strings.ToLower(col),
@@ -224,16 +224,16 @@ func (m Model) updateFilterMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nostyle
 		m.table.Focus()
 		m.clearFilter()
 		return m, nil
+	default:
+		// Forward key to textinput
+		var cmd tea.Cmd
+		m.filterInput, cmd = m.filterInput.Update(msg)
+
+		// Real-time filtering
+		m.applyFilter()
+
+		return m, cmd
 	}
-
-	// Forward key to textinput
-	var cmd tea.Cmd
-	m.filterInput, cmd = m.filterInput.Update(msg)
-
-	// Real-time filtering
-	m.applyFilter()
-
-	return m, cmd
 }
 
 // updateNormalMode handles key events in normal navigation mode.

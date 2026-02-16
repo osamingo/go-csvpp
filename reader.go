@@ -2,6 +2,7 @@ package csvpp
 
 import (
 	"encoding/csv"
+	"errors"
 	"io"
 )
 
@@ -57,7 +58,7 @@ func (r *Reader) Read() ([]*Field, error) {
 	r.line++
 	record, err := r.csvReader.Read()
 	if err != nil {
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil, err
 		}
 		return nil, &ParseError{Line: r.line, Err: err}
@@ -113,7 +114,7 @@ func (r *Reader) ensureHeaders() error {
 	r.line = 1
 	headerRow, err := r.csvReader.Read()
 	if err != nil {
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return ErrNoHeader
 		}
 		return &ParseError{Line: r.line, Err: err}

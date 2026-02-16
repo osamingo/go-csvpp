@@ -54,7 +54,7 @@ func init() {
 	rootCmd.AddCommand(convertCmd)
 }
 
-func runConvert(cmd *cobra.Command, _ []string) (retErr error) {
+func runConvert(cmd *cobra.Command, _ []string) (retErr error) { //nolint:unused // cobra handler signature
 	// Get flag values
 	inputFile, err := cmd.Flags().GetString("input")
 	if err != nil {
@@ -105,7 +105,11 @@ func runConvert(cmd *cobra.Command, _ []string) (retErr error) {
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() {
+		if cerr := r.Close(); cerr != nil && retErr == nil {
+			retErr = fmt.Errorf("failed to close input: %w", cerr)
+		}
+	}()
 
 	// Open output
 	w, err := fileutil.OpenOutput(outputFile, cmd.OutOrStdout())

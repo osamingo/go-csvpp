@@ -23,12 +23,16 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 }
 
-func runValidate(cmd *cobra.Command, args []string) error {
+func runValidate(cmd *cobra.Command, args []string) (retErr error) {
 	r, err := fileutil.OpenInputFromArgs(args)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() {
+		if cerr := r.Close(); cerr != nil && retErr == nil {
+			retErr = fmt.Errorf("failed to close input: %w", cerr)
+		}
+	}()
 
 	reader := csvpp.NewReader(r)
 
@@ -50,6 +54,6 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		recordCount++
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "Valid CSV++ file with %d record(s)\n", recordCount)
+	fmt.Fprintf(cmd.OutOrStdout(), "Valid CSV++ file with %d record(s)\n", recordCount) //nolint:errcheck // stdout write error is not actionable
 	return nil
 }

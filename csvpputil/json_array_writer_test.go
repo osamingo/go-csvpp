@@ -3,6 +3,7 @@ package csvpputil_test
 import (
 	"bytes"
 	"encoding/json/v2"
+	"errors"
 	"io"
 	"testing"
 
@@ -112,7 +113,7 @@ func TestJSONArrayWriter_Write(t *testing.T) {
 		}
 
 		err := w.Write([]*csvpp.Field{{Value: "Alice"}})
-		if err != io.ErrClosedPipe {
+		if !errors.Is(err, io.ErrClosedPipe) {
 			t.Errorf("Write() error = %v, want %v", err, io.ErrClosedPipe)
 		}
 	})

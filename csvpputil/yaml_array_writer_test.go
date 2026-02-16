@@ -2,6 +2,7 @@ package csvpputil_test
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
 
@@ -97,7 +98,7 @@ func TestYAMLArrayWriter_Write(t *testing.T) {
 		}
 
 		err := w.Write([]*csvpp.Field{{Value: "Alice"}})
-		if err != io.ErrClosedPipe {
+		if !errors.Is(err, io.ErrClosedPipe) {
 			t.Errorf("Write() error = %v, want %v", err, io.ErrClosedPipe)
 		}
 	})
