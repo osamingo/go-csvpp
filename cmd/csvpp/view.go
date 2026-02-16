@@ -28,12 +28,16 @@ func init() {
 	rootCmd.AddCommand(viewCmd)
 }
 
-func runView(cmd *cobra.Command, args []string) error {
+func runView(cmd *cobra.Command, args []string) (retErr error) {
 	r, err := fileutil.OpenInputFromArgs(args)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() {
+		if cerr := r.Close(); cerr != nil && retErr == nil {
+			retErr = fmt.Errorf("failed to close input: %w", cerr)
+		}
+	}()
 
 	reader := csvpp.NewReader(r)
 
@@ -50,7 +54,7 @@ func runView(cmd *cobra.Command, args []string) error {
 	// Check if stdout is a terminal
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		// Plain text output for pipes
-		fmt.Fprint(cmd.OutOrStdout(), tui.PlainView(headers, records))
+		fmt.Fprint(cmd.OutOrStdout(), tui.PlainView(headers, records)) //nolint:errcheck // stdout write error is not actionable
 		return nil
 	}
 

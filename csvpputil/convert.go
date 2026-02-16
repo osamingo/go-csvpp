@@ -2,6 +2,7 @@ package csvpputil
 
 import (
 	"github.com/goccy/go-yaml"
+
 	"github.com/osamingo/go-csvpp"
 )
 

@@ -118,7 +118,7 @@ func TestParseError_Unwrap(t *testing.T) {
 		t.Parallel()
 
 		got := parseErr.Unwrap()
-		if got != originalErr {
+		if !errors.Is(got, originalErr) {
 			t.Errorf("ParseError.Unwrap() = %v, want %v", got, originalErr)
 		}
 	})

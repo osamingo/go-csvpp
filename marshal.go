@@ -1,6 +1,7 @@
 package csvpp
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -46,7 +47,7 @@ func UnmarshalReader(r *Reader, dst any) error {
 	// Read and decode all records
 	for {
 		record, err := r.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {

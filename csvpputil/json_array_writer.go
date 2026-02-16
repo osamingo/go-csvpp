@@ -15,8 +15,8 @@ type JSONArrayWriterOption func(*JSONArrayWriter)
 // Output order is always determined by the headers order.
 //
 // Deprecated: This option is no longer needed as output order follows headers order.
-func WithDeterministic(_ bool) JSONArrayWriterOption {
-	return func(_ *JSONArrayWriter) {}
+func WithDeterministic(_ bool) JSONArrayWriterOption { //nolint:unused // kept for API compatibility
+	return func(_ *JSONArrayWriter) {} //nolint:unused // kept for API compatibility
 }
 
 // JSONArrayWriter writes CSV++ records as a JSON array using streaming output.

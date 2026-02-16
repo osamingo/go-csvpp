@@ -1,6 +1,7 @@
 package csvpp_test
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -194,7 +195,7 @@ func TestReader_Read_MultipleRecords(t *testing.T) {
 
 	// EOF
 	_, err = r.Read()
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		t.Errorf("Reader.Read() at EOF error = %v, want io.EOF", err)
 	}
 }

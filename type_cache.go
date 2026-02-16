@@ -42,10 +42,10 @@ var typeInfoCache sync.Map // map[reflect.Type]*typeInfo
 // computing it on first access.
 func cachedTypeInfo(t reflect.Type) *typeInfo {
 	if ti, ok := typeInfoCache.Load(t); ok {
-		return ti.(*typeInfo)
+		return ti.(*typeInfo) //nolint:errcheck // cache only stores *typeInfo
 	}
 	ti, _ := typeInfoCache.LoadOrStore(t, newTypeInfo(t))
-	return ti.(*typeInfo)
+	return ti.(*typeInfo) //nolint:errcheck // cache only stores *typeInfo
 }
 
 // newTypeInfo computes typeInfo for a struct type.
