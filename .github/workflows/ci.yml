@@ -34,8 +34,10 @@ jobs:
       - name: Setup Go environment
         uses: ./.github/actions/setup
 
-      - name: Check gofumpt
-        run: test -z "$(go tool gofumpt -l .)"
+      - name: Run gostyle
+        uses: k1LoW/gostyle-action@e1b847d37b3041c5fdb8b911bcf00b350779ca61 # v1.5.1
 
-      - name: Run go vet
-        run: go vet -all -vettool=$(go tool -n csvppvet) ./...
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: v2.9.0
