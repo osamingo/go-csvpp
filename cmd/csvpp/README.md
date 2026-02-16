@@ -14,7 +14,7 @@ Or build from source:
 GOEXPERIMENT=jsonv2 go build -o csvpp ./cmd/csvpp
 ```
 
-> **Note:** `GOEXPERIMENT=jsonv2` is required because this tool depends on `encoding/json/jsontext` (Go 1.25+).
+> **Note:** `GOEXPERIMENT=jsonv2` is required because this tool depends on `encoding/json/jsontext` (Go 1.26+).
 
 ## Commands
 

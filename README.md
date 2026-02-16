@@ -21,7 +21,7 @@ CSV++ extends traditional CSV to support **arrays** and **structured fields** wi
 
 ## Requirements
 
-- Go 1.25 or later
+- Go 1.26 or later
 - `GOEXPERIMENT=jsonv2` environment variable (required by `csvpputil` package, which uses `encoding/json/jsontext`)
 
 ## Installation
