@@ -1,4 +1,4 @@
-// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-01).
+// Package csvpp implements the IETF CSV++ specification (draft-mscaldas-csvpp-02).
 //
 // CSV++ extends traditional CSV to support arrays and structured fields within cells,
 // enabling complex data representation while maintaining CSV's simplicity.
@@ -9,9 +9,12 @@
 // CSV++ introduces four field types beyond simple text values:
 //
 //   - Simple: "name" - plain text value
-//   - Array: "tags[]" - multiple values separated by a delimiter (default: ~)
+//   - Array: "tags[]" - multiple values separated by a delimiter (default: ~ at top level only)
 //   - Structured: "geo(lat^lon)" - named components separated by a delimiter (default: ^)
 //   - ArrayStructured: "addresses[](street^city)" - array of structured values
+//
+// Per draft-02, the default tilde (~) delimiter for empty brackets applies only to
+// top-level (first-level) arrays. Nested arrays MUST explicitly specify a delimiter.
 //
 // These field types are represented by the [FieldKind] constants:
 // [SimpleField], [ArrayField], [StructuredField], and [ArrayStructuredField].
