@@ -45,7 +45,7 @@ func parseColumnHeaderWithDepth(s string, depth, maxDepth int) (*ColumnHeader, e
 	// 2. Extract array delimiter if "[" is present
 	// ABNF: array-field = name "[" [delimiter] "]"
 	if strings.HasPrefix(remaining, "[") {
-		delim, rest, err := parseArrayDelimiter(remaining)
+		delim, rest, err := parseArrayDelimiterWithDepth(remaining, depth)
 		if err != nil {
 			return nil, err
 		}
@@ -112,10 +112,12 @@ func isFieldChar(r rune) bool {
 		r == '_' || r == '-'
 }
 
-// parseArrayDelimiter extracts the "[" delimiter "]" part per IETF CSV++ Section 2.2.2.
+// parseArrayDelimiterWithDepth extracts the "[" delimiter "]" part per IETF CSV++ Section 2.2.2.
 // ABNF: array-field = name "[" [delimiter] "]"
-// If no delimiter is specified, DefaultArrayDelimiter (~) is used.
-func parseArrayDelimiter(s string) (delim rune, rest string, err error) {
+// If no delimiter is specified at the top level (depth == 0), DefaultArrayDelimiter (~) is used.
+// Per draft-02, nested arrays (depth > 0) MUST explicitly specify a delimiter;
+// empty brackets are invalid because the default tilde is already consumed by the outer level.
+func parseArrayDelimiterWithDepth(s string, depth int) (delim rune, rest string, err error) {
 	if !strings.HasPrefix(s, "[") {
 		return 0, s, nil
 	}
@@ -133,7 +135,10 @@ func parseArrayDelimiter(s string) (delim rune, rest string, err error) {
 	rest = after
 
 	if raw == "" {
-		// Use default delimiter
+		if depth > 0 {
+			return 0, "", fmt.Errorf("%w: nested arrays must specify an explicit delimiter (empty brackets are invalid at depth > 0)", ErrInvalidHeader)
+		}
+		// Use default delimiter only at top level
 		delim = DefaultArrayDelimiter
 	} else {
 		r, size := utf8.DecodeRuneInString(raw)

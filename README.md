@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/osamingo/go-csvpp)](https://goreportcard.com/report/github.com/osamingo/go-csvpp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-01).
+A Go implementation of the [IETF CSV++ specification](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/) (draft-mscaldas-csvpp-02).
 
 CSV++ extends traditional CSV to support **arrays** and **structured fields** within cells, enabling complex data representation while maintaining CSV's simplicity.
 
@@ -184,8 +184,11 @@ CSV++ supports four field types in headers:
 
 ### Default Delimiters
 
-- Array delimiter: `~` (tilde)
+- Array delimiter: `~` (tilde) — applies only to top-level arrays
 - Component delimiter: `^` (caret)
+
+Per draft-02, the default tilde for empty brackets (`[]`) applies only to first-level arrays.
+Nested arrays **must** specify an explicit delimiter (e.g., `values[;]`).
 
 Custom delimiters can be specified in the header:
 - `phone[|]` - uses `|` as array delimiter
@@ -307,7 +310,13 @@ if csvpp.HasFormulaPrefix(value) {
 ## Specification
 
 This implementation follows the IETF CSV++ specification:
-- [draft-mscaldas-csvpp-01](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/)
+- [draft-mscaldas-csvpp-02](https://datatracker.ietf.org/doc/draft-mscaldas-csvpp/02/)
+
+### Conformance Notes
+
+The following draft-02 features are **not yet implemented**:
+
+- **Leaf-only quoting validation**: draft-02 requires that RFC 4180 double-quote quoting is applied only to leaf elements (atomic values). Quoting non-leaf values (entire arrays or structured fields) is invalid per the specification. This library delegates CSV-level quoting to `encoding/csv`, which processes quotes before CSV++ delimiter splitting. As a result, non-leaf quoting cannot be detected or rejected at the CSV++ layer. In practice, the behavior is correct for well-formed input.
 
 ## License
 

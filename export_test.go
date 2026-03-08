@@ -6,7 +6,7 @@ var (
 	ParseColumnHeaderWithDepth    = parseColumnHeaderWithDepth
 	ParseHeaderRecordWithMaxDepth = parseHeaderRecordWithMaxDepth
 	ParseName                     = parseName
-	ParseArrayDelimiter           = parseArrayDelimiter
+	ParseArrayDelimiterWithDepth  = parseArrayDelimiterWithDepth
 	IsFieldChar                   = isFieldChar
 	SplitByRune                   = splitByRune
 	SplitByDelimiter              = splitByDelimiter

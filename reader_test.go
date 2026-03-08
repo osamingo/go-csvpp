@@ -377,27 +377,41 @@ func TestSplitByRune(t *testing.T) {
 func TestReader_NestedStructuredField(t *testing.T) {
 	t.Parallel()
 
-	// Test nested array in components
-	input := "name,data[](type^values[])\nAlice,home^1~2~work^3~4\n"
-	r := csvpp.NewReader(strings.NewReader(input))
+	t.Run("error: nested array with empty brackets", func(t *testing.T) {
+		t.Parallel()
 
-	got, err := r.Read()
-	if err != nil {
-		t.Fatalf("Reader.Read() error = %v", err)
-	}
+		// Per draft-02, nested arrays with empty brackets are invalid
+		input := "name,data[](type^values[])\nAlice,home^1~2~work^3~4\n"
+		r := csvpp.NewReader(strings.NewReader(input))
 
-	want := []*csvpp.Field{
-		{Value: "Alice"},
-		{Components: []*csvpp.Field{
-			{Components: []*csvpp.Field{{Value: "home"}, {Values: []string{"1"}}}},
-			{Components: []*csvpp.Field{{Value: "2"}, {Values: []string{}}}},
-			{Components: []*csvpp.Field{{Value: "work"}, {Values: []string{"3"}}}},
-			{Components: []*csvpp.Field{{Value: "4"}, {Values: []string{}}}},
-		}},
-	}
-	// Note: This test documents current behavior (may need adjustment based on spec)
-	_ = want
-	_ = got
+		_, err := r.Read()
+		if err == nil {
+			t.Error("Reader.Read() expected error for nested array with empty brackets")
+		}
+	})
+
+	t.Run("success: nested array with explicit delimiter", func(t *testing.T) {
+		t.Parallel()
+
+		input := "name,data[](type^values[;])\nAlice,home^1;2~work^3;4\n"
+		r := csvpp.NewReader(strings.NewReader(input))
+
+		got, err := r.Read()
+		if err != nil {
+			t.Fatalf("Reader.Read() error = %v", err)
+		}
+
+		want := []*csvpp.Field{
+			{Value: "Alice"},
+			{Components: []*csvpp.Field{
+				{Components: []*csvpp.Field{{Value: "home"}, {Values: []string{"1", "2"}}}},
+				{Components: []*csvpp.Field{{Value: "work"}, {Values: []string{"3", "4"}}}},
+			}},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("Reader.Read() mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func TestReader_MismatchedFields(t *testing.T) {
@@ -450,8 +464,8 @@ func TestReader_MaxNestingDepth(t *testing.T) {
 func TestReader_NestedComponents(t *testing.T) {
 	t.Parallel()
 
-	// Test nested structured field with array component
-	input := "name,data(type^values[])\nAlice,home^1~2~3\n"
+	// Test nested structured field with array component (explicit delimiter per draft-02)
+	input := "name,data(type^values[;])\nAlice,home^1;2;3\n"
 	r := csvpp.NewReader(strings.NewReader(input))
 
 	got, err := r.Read()

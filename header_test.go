@@ -122,6 +122,24 @@ func TestParseColumnHeader(t *testing.T) {
 			},
 		},
 		{
+			name:  "success: nested array with explicit delimiter",
+			input: "data(type^values[;])",
+			want: &csvpp.ColumnHeader{
+				Name:               "data",
+				Kind:               csvpp.StructuredField,
+				ComponentDelimiter: csvpp.DefaultComponentDelimiter,
+				Components: []*csvpp.ColumnHeader{
+					{Name: "type", Kind: csvpp.SimpleField},
+					{Name: "values", Kind: csvpp.ArrayField, ArrayDelimiter: ';'},
+				},
+			},
+		},
+		{
+			name:    "error: nested array with empty brackets",
+			input:   "data(type^values[])",
+			wantErr: true,
+		},
+		{
 			name:    "error: empty string",
 			input:   "",
 			wantErr: true,
@@ -242,48 +260,74 @@ func TestParseName(t *testing.T) {
 	}
 }
 
-func TestParseArrayDelimiter(t *testing.T) {
+func TestParseArrayDelimiterWithDepth(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name      string
 		input     string
+		depth     int
 		wantDelim rune
 		wantRest  string
 		wantErr   bool
 	}{
 		{
-			name:      "success: default delimiter",
+			name:      "success: default delimiter at top level",
 			input:     "[]",
+			depth:     0,
 			wantDelim: csvpp.DefaultArrayDelimiter,
 			wantRest:  "",
 		},
 		{
-			name:      "success: custom delimiter",
+			name:      "success: custom delimiter at top level",
 			input:     "[|]",
+			depth:     0,
 			wantDelim: '|',
+			wantRest:  "",
+		},
+		{
+			name:      "success: custom delimiter at nested level",
+			input:     "[;]",
+			depth:     1,
+			wantDelim: ';',
 			wantRest:  "",
 		},
 		{
 			name:      "success: with rest",
 			input:     "[](lat^lon)",
+			depth:     0,
 			wantDelim: csvpp.DefaultArrayDelimiter,
 			wantRest:  "(lat^lon)",
 		},
 		{
 			name:      "success: no bracket",
 			input:     "(lat^lon)",
+			depth:     0,
 			wantDelim: 0,
 			wantRest:  "(lat^lon)",
 		},
 		{
 			name:    "error: missing closing bracket",
 			input:   "[|",
+			depth:   0,
 			wantErr: true,
 		},
 		{
 			name:    "error: multiple characters as delimiter",
 			input:   "[||]",
+			depth:   0,
+			wantErr: true,
+		},
+		{
+			name:    "error: empty brackets at nested level",
+			input:   "[]",
+			depth:   1,
+			wantErr: true,
+		},
+		{
+			name:    "error: empty brackets at deeply nested level",
+			input:   "[]",
+			depth:   3,
 			wantErr: true,
 		},
 	}
@@ -292,19 +336,19 @@ func TestParseArrayDelimiter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotDelim, gotRest, err := csvpp.ParseArrayDelimiter(tt.input)
+			gotDelim, gotRest, err := csvpp.ParseArrayDelimiterWithDepth(tt.input, tt.depth)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("parseArrayDelimiter() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("parseArrayDelimiterWithDepth() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr {
 				return
 			}
 			if gotDelim != tt.wantDelim {
-				t.Errorf("parseArrayDelimiter() delim = %v, want %v", gotDelim, tt.wantDelim)
+				t.Errorf("parseArrayDelimiterWithDepth() delim = %v, want %v", gotDelim, tt.wantDelim)
 			}
 			if diff := cmp.Diff(tt.wantRest, gotRest); diff != "" {
-				t.Errorf("parseArrayDelimiter() rest mismatch (-want +got):\n%s", diff)
+				t.Errorf("parseArrayDelimiterWithDepth() rest mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
